@@ -1,15 +1,10 @@
-/* ============================================================
-   E-Connect Youth — Global Styles
-   Tailwind base + CSS custom properties + accessibility rules
-   ============================================================ */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties (Design Tokens) ────────────────── */
+/* ── CSS Design Tokens ─────────────────────────────────── */
 :root {
-  /* Primary teal — WCAG AAA 7.2:1 on white */
+  /* Primary — WCAG AAA 7.2:1 on white */
   --teal:        #0C7A6A;
   --teal-hover:  #0A6658;
   --teal-press:  #085549;
@@ -17,36 +12,31 @@
   --teal-ltt:    #EDFAF6;
   --teal-mid:    #4DB8A4;
 
-  /* Status palette — all WCAG AA on white */
+  /* Status — all WCAG AA on white */
   --blue:        #1D4ED8;
-  --blue-hover:  #1A45BF;
   --blue-lt:     #DBEAFE;
   --blue-ltt:    #EFF6FF;
-
   --green:       #047857;
   --green-lt:    #D1FAE5;
   --green-ltt:   #ECFDF5;
-
   --amber:       #92400E;
   --amber-lt:    #FEF3C7;
   --amber-ltt:   #FFFBEB;
-
   --red:         #B91C1C;
   --red-lt:      #FEE2E2;
   --red-ltt:     #FFF5F5;
-
   --purple:      #5B21B6;
   --purple-lt:   #EDE9FE;
   --purple-ltt:  #F5F3FF;
 
-  /* Text scale — all WCAG AA/AAA */
-  --tx-1: #111827;   /* 18.1:1 on white */
-  --tx-2: #1F2937;   /* 15.2:1 */
-  --tx-3: #374151;   /* 10.2:1 */
-  --tx-4: #4B5563;   /*  7.0:1 */
-  --tx-5: #6B7280;   /*  4.6:1 */
+  /* Text — WCAG AAA */
+  --tx-1: #111827;
+  --tx-2: #1F2937;
+  --tx-3: #374151;
+  --tx-4: #4B5563;
+  --tx-5: #6B7280;
 
-  /* Page backgrounds */
+  /* Backgrounds */
   --bg:   #F7FAFC;
   --bg2:  #EEF7F5;
   --bg3:  #E3F4F0;
@@ -60,40 +50,30 @@
   --sb-w:      240px;
 
   /* Borders */
-  --bdr:       #C8D9E0;
-  --bdr-lt:    #DDE9EE;
-  --bdr-focus: #0C7A6A;
+  --bdr:    #C8D9E0;
+  --bdr-lt: #DDE9EE;
 
-  /* Border radii */
+  /* Radii */
   --r-xs: 6px;
   --r-sm: 10px;
   --r:    14px;
   --r-lg: 20px;
   --r-xl: 28px;
 
-  /* Shadows — deliberately soft */
+  /* Shadows */
   --sh-xs: 0 1px 3px rgba(0,0,0,.06);
   --sh-sm: 0 2px 6px rgba(0,0,0,.07);
   --sh:    0 3px 12px rgba(0,0,0,.08);
   --sh-lg: 0 6px 20px rgba(0,0,0,.09);
-
-  /* Focus ring */
-  --focus-ring: 0 0 0 3px rgba(12,122,106,.45);
 }
 
-/* ── Base Reset & Typography ──────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  scroll-behavior: smooth;
 }
 
 body {
@@ -101,97 +81,51 @@ body {
   background: var(--bg);
   color: var(--tx-2);
   line-height: 1.65;
-  overflow: hidden; /* App uses internal scrolling */
+  overflow: hidden;
 }
 
-/* ── Accessibility: Visible Focus Ring ────────────────────── */
-/* Applied to ALL interactive elements via keyboard navigation */
+/* ── Accessibility: visible focus ring ─────────────────── */
 *:focus-visible {
   outline: 3px solid var(--teal);
   outline-offset: 3px;
   border-radius: var(--r-xs);
 }
+*:focus:not(:focus-visible) { outline: none; }
 
-/* Remove default outline for mouse users */
-*:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* ── Skip Navigation Link ─────────────────────────────────── */
+/* ── Skip link ──────────────────────────────────────────── */
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 8px;
   z-index: 9999;
   background: var(--teal);
-  color: white;
+  color: #fff;
   padding: 10px 18px;
   border-radius: var(--r-sm);
   font-weight: 800;
   font-size: 15px;
-  font-family: inherit;
   text-decoration: none;
-  white-space: nowrap;
-  box-shadow: var(--sh-lg);
 }
-.skip-link:focus {
-  left: 8px;
-}
+.skip-link:focus { left: 8px; }
 
-/* ── Scrollbars ───────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #B0C8D0;
-  border-radius: 99px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #8BAAB5;
-}
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #B0C8D0; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #8BAAB5; }
 
-/* ── Animations ───────────────────────────────────────────── */
+/* ── Page animation ─────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.pg { animation: fadeUp 0.28s ease both; }
 
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to   { opacity: 1; transform: scale(1); }
-}
+/* ── Forms ──────────────────────────────────────────────── */
+input, select, textarea, button { font-family: inherit; }
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-.pg  { animation: fadeUp  0.28s ease both; }
-.sci { animation: scaleIn 0.22s ease both; }
-
-/* ── Utility: Serif font ──────────────────────────────────── */
-.font-serif {
-  font-family: 'Lora', Georgia, serif;
-}
-
-/* ── Form element normalization ───────────────────────────── */
-input, select, textarea, button {
-  font-family: inherit;
-}
-
-/* Number input: hide spin arrows */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-}
-
-/* ── Print styles ─────────────────────────────────────────── */
-@media print {
-  body { overflow: visible; background: white; }
-  .sidebar, .skip-link, .role-bar { display: none !important; }
-  main { padding: 0 !important; }
-}
-
-/* ── Reduced motion ───────────────────────────────────────── */
+/* ── Reduced motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -199,7 +133,8 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 }
 
-/* ── High contrast mode support ───────────────────────────── */
-@media (forced-colors: active) {
-  .skip-link { forced-color-adjust: none; }
+/* ── Print ──────────────────────────────────────────────── */
+@media print {
+  body { overflow: visible; background: white; }
+  main { padding: 0 !important; }
 }
