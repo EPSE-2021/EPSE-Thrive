@@ -848,7 +848,7 @@ const FamilyMessagesPage=()=>{
               </div>
             ))}
           </div>
-          <div style={{padding:"14px 20px",borderTop:"1px solid var(--bdr)",display:"flex",gap:8",flexShrink:0}}>
+          <div style={{padding:"14px 20px",borderTop:"1px solid var(--bdr)",display:"flex",gap:8,flexShrink:0}}>
             <input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={`Message ${active.name}...`} onFocus={iFoc} onBlur={iBlr} style={{...iSt,flex:1,minHeight:42}}/>
             <Btn v="pri" onClick={send}>Send</Btn>
           </div>
@@ -2616,7 +2616,7 @@ Future feature: session timer starts automatically and populates start/end time 
                   <td style={{padding:"11px 13px",fontSize:13,fontFamily:"monospace"}}>{s.start}</td>
                   <td style={{padding:"11px 13px",fontSize:13,fontFamily:"monospace"}}>{s.end}</td>
                   <td style={{padding:"11px 13px"}}><Badge v="gray" xs>{s.duration}</Badge></td>
-                  <td style={{padding:"11px 13px"}}><Badge v="blue" xs>{s.type.match(/\d{5}/)?.[0]||"—"}</Badge></td>
+                  <td style={{padding:"11px 13px"}}><Badge v="blue" xs>{(s.type.split(/[^0-9]/).find(x=>x.length===5))||"—"}</Badge></td>
                   <td style={{padding:"11px 13px"}}><Badge v="green" xs>{s.billed}</Badge></td>
                 </tr>
               ))}
