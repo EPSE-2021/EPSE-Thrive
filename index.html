@@ -580,13 +580,35 @@ const YouthDash = ({nav}) => {
             <div style={{display:"flex",gap:8}}><Btn v="pri" sz="sm">Join session</Btn><Btn v="sec" sz="sm" onClick={()=>nav("appointments")}>Reschedule</Btn></div>
           </Card>
           <Card>
-            <h2 style={{fontSize:14,fontWeight:800,marginBottom:13}}>🛠️ My coping toolkit</h2>
-            {[{e:"🌬️",n:"4-7-8 Breathing",s:"Calms nervous system · 2 min",bg:"#EDFAF6"},{e:"📔",n:"Mood journal",s:"Track your thoughts",bg:"#EFF6FF"},{e:"🎵",n:"Calm playlist",s:"Curated by your care team",bg:"#F5F3FF"},{e:"🧘",n:"Body scan meditation",s:"Somatic awareness · 5 min",bg:"#FFFBEB"}].map(t=>(
-              <div key={t.n} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:t.bg,borderRadius:"var(--r-sm)",marginBottom:7,cursor:"pointer",border:"1px solid var(--bdr)"}}>
-                <span style={{fontSize:18}}>{t.e}</span>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:13}}>
+              <h2 style={{fontSize:14,fontWeight:800}}>🛠️ My coping toolkit</h2>
+              <Badge v="teal" xs>12 activities</Badge>
+            </div>
+
+            <div style={{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:"#0C7A6A",marginBottom:8}}>🧘 Calm my mind & body</div>
+            {[{e:"🌬️",n:"4-7-8 Breathing",s:"Calms nervous system · 2 min",bg:"#EDFAF6"},{e:"🧘",n:"Body scan meditation",s:"Somatic awareness · 5 min",bg:"#EDFAF6"},{e:"📔",n:"Mood journal",s:"Track your thoughts & feelings",bg:"#EFF6FF"},{e:"🎵",n:"Calm playlist",s:"Curated by your care team",bg:"#F5F3FF"}].map(t=>(
+              <div key={t.n} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:t.bg,borderRadius:"var(--r-sm)",marginBottom:6,cursor:"pointer",border:"1px solid var(--bdr)",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateX(3px)"}} onMouseLeave={e=>{e.currentTarget.style.transform="none"}}>
+                <span style={{fontSize:18,flexShrink:0}}>{t.e}</span>
                 <div><div style={{fontSize:13.5,fontWeight:700}}>{t.n}</div><div style={{fontSize:12,color:"var(--tx4)"}}>{t.s}</div></div>
               </div>
             ))}
+
+            <div style={{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:"#1D4ED8",marginBottom:8,marginTop:12}}>🏃 Physical fitness & movement</div>
+            {[{e:"🏃",n:"Running",s:"Start with a 10-min jog · builds mood & energy",bg:"#EFF6FF"},{e:"💪",n:"Exercise routine",s:"Stretching, strength, or cardio · 15–20 min",bg:"#EDFAF6"},{e:"💃",n:"Dancing",s:"Put on your favorite song and move · any style!",bg:"#F5F3FF"},{e:"🧘",n:"Yoga",s:"Gentle flow for stress relief · beginner friendly",bg:"#ECFDF5"}].map(t=>(
+              <div key={t.n} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:t.bg,borderRadius:"var(--r-sm)",marginBottom:6,cursor:"pointer",border:"1px solid var(--bdr)",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateX(3px)"}} onMouseLeave={e=>{e.currentTarget.style.transform="none"}}>
+                <span style={{fontSize:18,flexShrink:0}}>{t.e}</span>
+                <div><div style={{fontSize:13.5,fontWeight:700}}>{t.n}</div><div style={{fontSize:12,color:"var(--tx4)"}}>{t.s}</div></div>
+              </div>
+            ))}
+
+            <div style={{fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:"#5B21B6",marginBottom:8,marginTop:12}}>🎨 Creative expression</div>
+            {[{e:"🎤",n:"Singing",s:"Hum, sing along, or write your own lyrics",bg:"#F5F3FF"},{e:"✏️",n:"Drawing",s:"Sketch, doodle, or paint how you feel today",bg:"#FFF7ED"},{e:"🧶",n:"Crocheting",s:"Repetitive motion calms anxiety · learn a new stitch",bg:"#FEF3C7"},{e:"🪡",n:"Sewing",s:"Focus on creating something with your hands",bg:"#FFFBEB"}].map(t=>(
+              <div key={t.n} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:t.bg,borderRadius:"var(--r-sm)",marginBottom:6,cursor:"pointer",border:"1px solid var(--bdr)",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.transform="translateX(3px)"}} onMouseLeave={e=>{e.currentTarget.style.transform="none"}}>
+                <span style={{fontSize:18,flexShrink:0}}>{t.e}</span>
+                <div><div style={{fontSize:13.5,fontWeight:700}}>{t.n}</div><div style={{fontSize:12,color:"var(--tx4)"}}>{t.s}</div></div>
+              </div>
+            ))}
+
           </Card>
           <Btn v="pri" full onClick={()=>nav("journal")}>📓 Go to Journaling & Mood Tracker →</Btn>
           <Alert type="danger"><strong>Need help now?</strong> Call or text <strong>988</strong> — free, private, 24/7. Text HOME to <strong>741741</strong>.</Alert>
