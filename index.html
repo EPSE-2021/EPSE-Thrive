@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- E-Connect Youth v20260529-040900 — EPSE Enterprises LLC — All data fictional -->
+<!-- E-Connect v20260529-040900 — EPSE Enterprises LLC — All data fictional -->
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>E-Connect Youth — EPSE Enterprises LLC</title>
+  <title>E-Connect — EPSE Enterprises LLC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
@@ -134,20 +134,62 @@ const TRAUMA_QUESTIONS=[
   {id:6,text:"Have these experiences interfered with your school, work, or relationships?",domain:"Functional Impairment"},
 ];
 
+// ══════════════════════════════════════════════════════════
+// POPULATION CLASSIFICATION ENGINE
+// ══════════════════════════════════════════════════════════
+const getPopulation=(age,veteran=false)=>{
+  if(veteran&&age>=18) return "VETERAN";
+  if(age>=10&&age<=14) return "EARLY_YOUTH";
+  if(age>=15&&age<=17) return "MIDDLE_YOUTH";
+  if(age>=18&&age<=24) return "OLDER_YOUTH";
+  if(age>=25) return "ADULT";
+  return "ADULT";
+};
+
+const POPULATION_META={
+  EARLY_YOUTH:  {label:"Early Youth",  icon:"🌱",color:"#1D4ED8",bg:"#DBEAFE",border:"#93C5FD",teamLabel:"Your support team",   guardianRule:"required"},
+  MIDDLE_YOUTH: {label:"Middle Youth", icon:"🌿",color:"#5B21B6",bg:"#EDE9FE",border:"#C4B5FD",teamLabel:"Your support team",   guardianRule:"required"},
+  OLDER_YOUTH:  {label:"Older Youth",  icon:"🌳",color:"#047857",bg:"#D1FAE5",border:"#6EE7B7",teamLabel:"Your care connections",guardianRule:"optional"},
+  ADULT:        {label:"Adult",        icon:"👤",color:"#92400E",bg:"#FEF3C7",border:"#FCD34D",teamLabel:"Your care network",    guardianRule:"none"},
+  VETERAN:      {label:"Veteran",      icon:"🎖️",color:"#7F1D1D",bg:"#FEE2E2",border:"#FCA5A5",teamLabel:"Your care network",    guardianRule:"none"},
+};
+
+const calcAge=(dob)=>{
+  if(!dob) return null;
+  const today=new Date(), b=new Date(dob);
+  let age=today.getFullYear()-b.getFullYear();
+  if(today.getMonth()-b.getMonth()<0||(today.getMonth()===b.getMonth()&&today.getDate()<b.getDate())) age--;
+  return age;
+};
+
+const PopBadge=({pop,xs})=>{
+  const m=POPULATION_META[pop]||POPULATION_META.ADULT;
+  return <span style={{display:"inline-flex",alignItems:"center",gap:4,borderRadius:99,fontWeight:800,whiteSpace:"nowrap",fontSize:xs?11:13,padding:xs?"3px 9px":"5px 13px",background:m.bg,color:m.color,border:`1px solid ${m.border}`}}>{m.icon} {m.label}</span>;
+};
+
+const showSchoolFields=(pop)=>["EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH"].includes(pop);
+const needsGuardian=(pop)=>pop==="EARLY_YOUTH"||pop==="MIDDLE_YOUTH";
+
+// ── Extended REFERRALS with population fields ─────────────
 const REFERRALS=[
-  {id:"EC-2025-0499",name:"Tyler B.",age:14,school:"Vestavia Hills HS",concern:"Anxiety, panic attacks",risk:"urgent",status:"pending",days:1,provider:"—",consent:false,cssrs:4,trauma:3},
-  {id:"EC-2025-0497",name:"A.M.",age:15,school:"Jefferson HS",concern:"Anxiety, school avoidance",risk:"elevated",status:"triaged",days:2,provider:"—",consent:true,cssrs:2,trauma:2},
-  {id:"EC-2025-0493",name:"Jordan T.",age:15,school:"Parker HS",concern:"Generalized anxiety",risk:"elevated",status:"scheduled",days:22,provider:"Dr. Williams",consent:true,cssrs:1,trauma:1},
-  {id:"EC-2025-0488",name:"K.R.",age:17,school:"Peer referral",concern:"Stress, college transitions",risk:"routine",status:"active",days:31,provider:"S. Chen",consent:true,cssrs:0,trauma:0},
-  {id:"EC-2025-0479",name:"D.B.",age:14,school:"Birmingham City Schools",concern:"Grief, trauma, family loss",risk:"elevated",status:"active",days:46,provider:"Fictional Provider — JCBH Group",consent:true,cssrs:2,trauma:4},
+  {id:"EC-2025-0499",name:"Tyler B.",  age:14,dob:"2011-03-12",population:"EARLY_YOUTH", veteran:false,school:"Vestavia Hills HS",   concern:"Anxiety, panic attacks",      risk:"urgent",  status:"pending",  days:1, provider:"—",                          consent:false,cssrs:4,trauma:3,guardian:"Ms. B. Brooks"},
+  {id:"EC-2025-0497",name:"A.M.",      age:15,dob:"2010-08-22",population:"MIDDLE_YOUTH",veteran:false,school:"Jefferson HS",         concern:"Anxiety, school avoidance",   risk:"elevated",status:"triaged",  days:2, provider:"—",                          consent:true, cssrs:2,trauma:2,guardian:"Mr. A. Martinez"},
+  {id:"EC-2025-0493",name:"Jordan T.", age:15,dob:"2010-04-15",population:"MIDDLE_YOUTH",veteran:false,school:"Parker HS",            concern:"Generalized anxiety",         risk:"elevated",status:"scheduled",days:22,provider:"Dr. Williams",              consent:true, cssrs:1,trauma:1,guardian:"Ms. Thompson"},
+  {id:"EC-2025-0488",name:"K.R.",      age:17,dob:"2008-11-05",population:"MIDDLE_YOUTH",veteran:false,school:"Peer referral",        concern:"Stress, college transitions", risk:"routine", status:"active",   days:31,provider:"S. Chen",                  consent:true, cssrs:0,trauma:0,guardian:"Mr. K. Rhodes"},
+  {id:"EC-2025-0479",name:"D.B.",      age:14,dob:"2011-01-30",population:"EARLY_YOUTH", veteran:false,school:"Birmingham City Schools",concern:"Grief, trauma, family loss",risk:"elevated",status:"active",   days:46,provider:"Fictional Provider — JCBH",consent:true, cssrs:2,trauma:4,guardian:"Ms. D. Brown"},
+  {id:"EC-2025-0471",name:"Marcus W.", age:22,dob:"2003-06-18",population:"OLDER_YOUTH", veteran:false,school:"UAB — self-referral",  concern:"Depression, isolation",       risk:"elevated",status:"active",   days:12,provider:"Dr. Williams",              consent:true, cssrs:1,trauma:2,guardian:null},
+  {id:"EC-2025-0463",name:"R.V.",      age:29,dob:"1996-02-14",population:"VETERAN",      veteran:true, school:null,                  concern:"PTSD, reintegration stress",  risk:"elevated",status:"triaged",  days:5, provider:"—",                          consent:true, cssrs:2,trauma:5,guardian:null},
+  {id:"EC-2025-0455",name:"T.H.",      age:45,dob:"1980-09-03",population:"VETERAN",      veteran:true, school:null,                  concern:"Combat trauma, substance use", risk:"urgent",  status:"pending",  days:1, provider:"—",                          consent:false,cssrs:3,trauma:5,guardian:null},
 ];
 
 const PROVIDERS=[
-  {id:1,name:"Fictional Provider — Dr. Marcus Williams, LPC",photo:"👨‍⚕️",spec:"Anxiety · CBT · Adolescents",org:"Jefferson County BH",slots:3,medicaid:true,telehealth:true,wait:"< 1 week",rating:4.9,reviews:47,languages:"English",insurance:["Medicaid","ALL Kids","Blue Cross"],about:"10+ years working with teens and young adults. Specializes in anxiety, school avoidance, and CBT. Warm, collaborative approach.",match:96},
-  {id:2,name:"Fictional Provider — Sarah Chen, LPC-A",photo:"👩‍⚕️",spec:"Trauma · DBT · Teen girls",org:"Thrive Counseling",slots:1,medicaid:true,telehealth:true,wait:"< 1 week",rating:4.8,reviews:31,languages:"English, Mandarin",insurance:["Medicaid","Private"],about:"Certified trauma therapist with expertise in DBT and adolescent girls. Culturally responsive care.",match:88},
-  {id:3,name:"Fictional Provider — JCBH Youth Services",photo:"🏥",spec:"General BH · Group therapy",org:"Jefferson County BH",slots:8,medicaid:true,telehealth:true,wait:"This week",rating:4.7,reviews:112,languages:"English, Spanish",insurance:["Medicaid","ALL Kids","Most private"],about:"Community mental health center offering individual and group therapy. Large team, short wait times.",match:81},
-  {id:4,name:"Fictional Provider — Dr. Amara Patel, MD",photo:"👩‍⚕️",spec:"Child psychiatry · Medication",org:"UAB Youth Clinic",slots:0,medicaid:true,telehealth:false,wait:"6–8 wks",rating:4.9,reviews:88,languages:"English, Hindi",insurance:["Medicaid","Most insurance"],about:"Board-certified child psychiatrist. Specializes in medication management for anxiety, ADHD, and mood disorders.",match:74},
-  {id:5,name:"Fictional Provider — Wellstone Youth Team",photo:"🏢",spec:"Family therapy · ADHD",org:"Wellstone BH",slots:5,medicaid:false,telehealth:true,wait:"1–2 weeks",rating:4.6,reviews:55,languages:"English",insurance:["Private","Sliding scale"],about:"Family-systems approach to adolescent mental health. ADHD specialists on staff.",match:69},
+  {id:1,name:"Fictional Provider — Dr. Marcus Williams, LPC",photo:"👨‍⚕️",spec:"Anxiety · CBT · Adolescents",org:"Jefferson County BH",slots:3,medicaid:true,telehealth:true,wait:"< 1 week",rating:4.9,reviews:47,languages:"English",insurance:["Medicaid","ALL Kids","Blue Cross"],about:"10+ years working with teens and young adults. Specializes in anxiety, school avoidance, and CBT. Warm, collaborative approach.",match:96,populations:["EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH"],veteranSpecialist:false},
+  {id:2,name:"Fictional Provider — Sarah Chen, LPC-A",photo:"👩‍⚕️",spec:"Trauma · DBT · Teen girls",org:"Thrive Counseling",slots:1,medicaid:true,telehealth:true,wait:"< 1 week",rating:4.8,reviews:31,languages:"English, Mandarin",insurance:["Medicaid","Private"],about:"Certified trauma therapist with expertise in DBT and adolescent girls. Culturally responsive care.",match:88,populations:["MIDDLE_YOUTH","OLDER_YOUTH"],veteranSpecialist:false},
+  {id:3,name:"Fictional Provider — JCBH Behavioral Health Services",photo:"🏥",spec:"General BH · Group therapy · All ages",org:"Jefferson County BH",slots:8,medicaid:true,telehealth:true,wait:"This week",rating:4.7,reviews:112,languages:"English, Spanish",insurance:["Medicaid","ALL Kids","Most private"],about:"Community mental health center serving all populations — youth through adult. Large team, short wait times.",match:81,populations:["EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH","ADULT","VETERAN"],veteranSpecialist:false},
+  {id:4,name:"Fictional Provider — Dr. Amara Patel, MD",photo:"👩‍⚕️",spec:"Child psychiatry · Medication",org:"UAB Youth Clinic",slots:0,medicaid:true,telehealth:false,wait:"6–8 wks",rating:4.9,reviews:88,languages:"English, Hindi",insurance:["Medicaid","Most insurance"],about:"Board-certified child psychiatrist. Specializes in medication management for anxiety, ADHD, and mood disorders.",match:74,populations:["EARLY_YOUTH","MIDDLE_YOUTH"],veteranSpecialist:false},
+  {id:5,name:"Fictional Provider — Wellstone Adult and Family",photo:"🏢",spec:"Family therapy · ADHD · Adult care",org:"Wellstone BH",slots:5,medicaid:false,telehealth:true,wait:"1–2 weeks",rating:4.6,reviews:55,languages:"English",insurance:["Private","Sliding scale"],about:"Family-systems approach across the lifespan. Adult and adolescent specialists on staff.",match:69,populations:["OLDER_YOUTH","ADULT"],veteranSpecialist:false},
+  {id:6,name:"Fictional Provider — VA Community Care Liaison",photo:"🎖️",spec:"PTSD · Combat trauma · Reintegration",org:"Alabama VA Network",slots:4,medicaid:false,telehealth:true,wait:"1–2 weeks",rating:4.8,reviews:63,languages:"English",insurance:["TRICARE","VA Community Care","Most private"],about:"Specialized behavioral health for veterans and active military. Evidence-based PTSD treatment, reintegration support, and peer specialist coordination.",match:98,populations:["VETERAN"],veteranSpecialist:true},
+  {id:7,name:"Fictional Provider — Adult Wellness Center",photo:"👤",spec:"Adult BH · Depression · Anxiety",org:"Birmingham Adult MH",slots:6,medicaid:true,telehealth:true,wait:"< 1 week",rating:4.5,reviews:41,languages:"English, Spanish",insurance:["Medicaid","Blue Cross","Aetna"],about:"Dedicated adult behavioral health for clients 25 and older. Specializes in depression, anxiety, and life transitions.",match:85,populations:["ADULT"],veteranSpecialist:false},
 ];
 
 const RESOURCES=[
@@ -177,14 +219,56 @@ const MODALITIES=[
 ];
 
 const ONBOARDING={
+  // ── Youth populations (keep existing, add new) ──────────
   Youth:[
-    {icon:"👋",title:"Welcome, Jordan!",text:"This is your private safe space. Everything you share here stays between you and your care team — no one else."},
+    {icon:"👋",title:"Welcome to E-Connect!",text:"This is your private safe space. Everything you share here stays between you and your care team — no one else."},
     {icon:"🌡️",title:"Daily check-ins",text:"Check in with your mood and stress level each day. It only takes 2 minutes and helps your care team support you better."},
     {icon:"📓",title:"Journaling prompts",text:"We have 18 different therapeutic prompts to guide your journaling — from mindfulness to strength-building. Try one today!"},
     {icon:"🛠️",title:"Your coping toolkit",text:"Your toolkit has 12 activities — breathing, running, yoga, dancing, singing, drawing, crocheting, and more. Find what works for you."},
-    {icon:"💬",title:"Message your care team",text:"Send a secure message to Ms. Rivera, Dr. Williams, or your care coordinator anytime. They typically respond within 24 hours."},
-    {icon:"🚨",title:"If you need help NOW",text:"If you're ever in crisis, call or text 988 immediately. It's free, private, and available 24/7. You are never alone."},
+    {icon:"💬",title:"Message your care team",text:"Send a secure message to your counselor, therapist, or care coordinator anytime. They typically respond within 24 hours."},
+    {icon:"🚨",title:"If you need help NOW",text:"If you are ever in crisis, call or text 988 immediately. It is free, private, and available 24/7. You are never alone."},
   ],
+  EARLY_YOUTH:[
+    {icon:"🌱",title:"Welcome to E-Connect!",text:"This is your safe place. Your support team — your counselor, therapist, and family — are all here to help you."},
+    {icon:"🌡️",title:"Daily mood check-in",text:"Check in with how you are feeling each day. It only takes 2 minutes and helps your support team know how to help you."},
+    {icon:"📓",title:"Journaling just for you",text:"We have fun, thoughtful journal prompts to help you express how you feel. You can write, draw ideas, or just make a list."},
+    {icon:"🛠️",title:"Your coping toolkit",text:"Your toolkit has 12 activities like breathing exercises, drawing, dancing, and more. Find what makes you feel better."},
+    {icon:"🏠",title:"Your family is part of your team",text:"Your parent or guardian can see updates on your care and help make sure you get the support you need."},
+    {icon:"🚨",title:"If you need help right now",text:"Call or text 988 anytime. It is free, private, and someone is always there. You are never alone."},
+  ],
+  MIDDLE_YOUTH:[
+    {icon:"🌿",title:"Welcome to E-Connect!",text:"This is your private space. Only your care team can see what you share here."},
+    {icon:"🌡️",title:"Mood tracking",text:"Track your mood daily. Your school counselor and therapist review trends to personalize your support."},
+    {icon:"📓",title:"Journaling with purpose",text:"18 therapeutic journaling prompts designed for teens — from CBT thought records to mindfulness and strength-building."},
+    {icon:"🎯",title:"Goal setting",text:"Set goals with your counselor — school attendance, managing anxiety, building friendships. Track your progress here."},
+    {icon:"🏫",title:"Your school counselor is connected",text:"Your school counselor can coordinate directly with your care team. You decide what gets shared."},
+    {icon:"🚨",title:"Crisis resources",text:"Call or text 988 anytime — free, private, 24/7. Your safety always comes first."},
+  ],
+  OLDER_YOUTH:[
+    {icon:"🌳",title:"Welcome to E-Connect!",text:"You are in charge of your own care. This platform supports your independence while connecting you to the right help."},
+    {icon:"🔄",title:"Transition planning",text:"Whether you are moving from school to work, leaving home, or navigating a major life change — we support that transition."},
+    {icon:"💼",title:"Career and education goals",text:"Your care coordinator can connect you to education resources, career counseling, and community supports."},
+    {icon:"🩺",title:"Independent care management",text:"Schedule your own appointments, message your provider directly, and manage your own consent settings."},
+    {icon:"🤝",title:"Your care connections",text:"You build your care network. Choose who is involved and how much they know."},
+    {icon:"🚨",title:"Crisis support",text:"Call or text 988 anytime. Text HOME to 741741. You are never alone."},
+  ],
+  ADULT:[
+    {icon:"👤",title:"Welcome to E-Connect!",text:"E-Connect provides personalized behavioral health coordination for adults. Your care network is here to support you."},
+    {icon:"📅",title:"Care coordination",text:"Your care coordinator connects you to the right provider, manages scheduling, and helps navigate insurance and benefits."},
+    {icon:"🧘",title:"Wellness planning",text:"Work with your care team to build a personalized wellness plan — mental health, lifestyle, and community supports."},
+    {icon:"🌐",title:"Community resources",text:"Access Alabama behavioral health resources, peer support groups, and community services through the platform."},
+    {icon:"🔐",title:"You control your information",text:"You decide who sees your information. Consent settings can be updated at any time."},
+    {icon:"🚨",title:"Crisis support",text:"Call or text 988 anytime — free, private, and available 24/7."},
+  ],
+  VETERAN:[
+    {icon:"🎖️",title:"Welcome, Veteran!",text:"E-Connect honors your service. This platform connects you to behavioral health care that understands your experience."},
+    {icon:"🤝",title:"Veteran-aware care team",text:"Your care coordinator will match you to providers with experience in military trauma, PTSD, and reintegration support."},
+    {icon:"🆘",title:"Crisis support — Veterans line",text:"Call or text 988 then press 1 for the Veterans Crisis Line. Free, confidential, and available 24/7."},
+    {icon:"🔄",title:"Military transition support",text:"Whether you are transitioning out of service or navigating post-military life, your care coordinator is here to help."},
+    {icon:"👥",title:"Peer support options",text:"Connect with veteran peer support specialists who understand what you have been through. You are not alone."},
+    {icon:"📋",title:"VA coordination",text:"Your care team can help coordinate with your VA case manager or TRICARE plan to ensure seamless care."},
+  ],
+  // ── Role-based onboarding (unchanged) ───────────────────
   Parent:[
     {icon:"🏡",title:"Welcome to your family hub!",text:"This is where you manage your child's care, track their referral, and stay connected with their support team."},
     {icon:"📋",title:"Submit a support request",text:"Fill out a brief form to request mental health support for your child. A care coordinator will respond within 1 business day."},
@@ -196,19 +280,19 @@ const ONBOARDING={
     {icon:"🏫",title:"Welcome, Counselor!",text:"This portal lets you submit student referrals securely, track outcomes, and coordinate with care teams — all FERPA-compliant."},
     {icon:"📋",title:"Submit referrals easily",text:"Our smart referral form captures the minimum necessary information and automatically requests parental consent."},
     {icon:"⚡",title:"Fast matching",text:"Once consent is confirmed, our system matches students to available providers in days, not weeks."},
-    {icon:"📊",title:"Track your referrals",text:"See the status of every referral you've submitted. Get notified when a student is matched or scheduled."},
+    {icon:"📊",title:"Track your referrals",text:"See the status of every referral you have submitted. Get notified when a student is matched or scheduled."},
   ],
   Provider:[
     {icon:"🩺",title:"Welcome, Provider!",text:"Review incoming referrals, manage your caseload, schedule CSSR and trauma screenings, and coordinate care."},
-    {icon:"📥",title:"Your referral queue",text:"New referrals appear in your dashboard. Review the youth's concern, risk level, and consent status before accepting."},
+    {icon:"📥",title:"Your referral queue",text:"New referrals appear in your dashboard. Review the client concern, risk level, population type, and consent status before accepting."},
     {icon:"🧪",title:"Clinical screening tools",text:"Conduct C-SSRS and trauma screenings directly in the platform. Results are auto-documented and can be exported to EHR."},
-    {icon:"📅",title:"Integrated scheduling",text:"Book telehealth or in-person sessions from your availability. Youth and families receive automatic reminders."},
+    {icon:"📅",title:"Integrated scheduling",text:"Book telehealth or in-person sessions from your availability. Clients and families receive automatic reminders."},
   ],
   Admin:[
-    {icon:"🔗",title:"Welcome, Coordinator!",text:"Manage the full referral pipeline — from submission to active care. You're the hub that makes it all work."},
-    {icon:"📋",title:"Your case queue",text:"Cases are prioritized by urgency and SLA timers. Urgent referrals rise to the top automatically."},
-    {icon:"🩺",title:"Provider matching",text:"Match youth to available providers based on specialty, insurance, telehealth preference, and location."},
-    {icon:"📊",title:"Analytics dashboard",text:"Monitor program-wide outcomes, equity data, and impact metrics. All data is de-identified and aggregated."},
+    {icon:"🔗",title:"Welcome, Coordinator!",text:"Manage the full referral pipeline — from submission to active care across all populations."},
+    {icon:"📋",title:"Your case queue",text:"Cases are prioritized by urgency and SLA timers. Population type and veteran status are visible on every card."},
+    {icon:"🩺",title:"Provider matching",text:"Match clients to available providers based on specialty, population type, insurance, telehealth preference, and location."},
+    {icon:"📊",title:"Analytics dashboard",text:"Monitor program-wide outcomes, equity data, and impact metrics by population type. All data is de-identified and aggregated."},
   ],
 };
 
@@ -319,7 +403,9 @@ const MoodChart=({data,height=80})=>{
 // ── ONBOARDING MODAL ──────────────────────────────────────
 const OnboardingModal=({role,onClose})=>{
   const[step,setStep]=useState(0);
-  const steps=ONBOARDING[role]||ONBOARDING.Admin;
+  // Map role → population onboarding key
+  const popKey={"Youth":"EARLY_YOUTH","MIDDLE_YOUTH":"MIDDLE_YOUTH","OLDER_YOUTH":"OLDER_YOUTH","ADULT":"ADULT","VETERAN":"VETERAN"}[role];
+  const steps=ONBOARDING[popKey]||ONBOARDING[role]||ONBOARDING.Admin;
   const isLast=step===steps.length-1;
   const s=steps[step];
   return(
@@ -355,7 +441,7 @@ const DisclaimerModal=({onAccept})=>{
         {/* Header */}
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{width:64,height:64,borderRadius:18,background:"linear-gradient(135deg,#0C7A6A,#1D4ED8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,margin:"0 auto 16px",boxShadow:"0 4px 16px rgba(12,122,106,.35)"}}>🔗</div>
-          <h1 style={{fontSize:22,fontWeight:900,color:"var(--tx1)",marginBottom:6}}>E-Connect Youth — Prototype</h1>
+          <h1 style={{fontSize:22,fontWeight:900,color:"var(--tx1)",marginBottom:6}}>E-Connect — Prototype</h1>
           <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"#FEF3C7",border:"1.5px solid #FCD34D",borderRadius:99,padding:"5px 14px",fontSize:12,fontWeight:800,color:"#92400E"}}>
             ⚠️ PROTOTYPE · FOR DEMONSTRATION ONLY
           </div>
@@ -388,7 +474,7 @@ const DisclaimerModal=({onAccept})=>{
         {/* IP notice */}
         <div style={{background:"var(--bg2)",border:"1px solid var(--bdr)",borderRadius:"var(--r-sm)",padding:"13px 16px",marginBottom:20}}>
           <div style={{fontSize:13,color:"var(--tx3)",lineHeight:1.65}}>
-            🔐 <strong>Intellectual Property Notice:</strong> E-Connect Youth is a patent-pending platform developed by EPSE Enterprises LLC (Patent Application No. 63875629, filed 09/17/2025). This prototype contains proprietary information. Unauthorized reproduction or distribution is prohibited.
+            🔐 <strong>Intellectual Property Notice:</strong> E-Connect is a patent-pending platform developed by EPSE Enterprises LLC (Patent Application No. 63875629, filed 09/17/2025). This prototype contains proprietary information. Unauthorized reproduction or distribution is prohibited.
           </div>
           <div style={{marginTop:8,fontSize:13,color:"var(--tx4)"}}>
             Contact: <strong>feliciasoodeen@epse2021.org</strong> · <a href="https://www.epse2021.org" target="_blank" rel="noopener noreferrer" style={{color:"var(--teal)",fontWeight:700}}>epse2021.org</a> · (205) 675-0169
@@ -418,7 +504,12 @@ const DisclaimerModal=({onAccept})=>{
 // ══════════════════════════════════════════════════════════
 const SEARCH_INDEX=[
   {id:"home",label:"Home",desc:"Platform overview and portal selection",emoji:"🏠"},
-  {id:"youth",label:"Youth Dashboard",desc:"Wellness check-in, mood, care team",emoji:"🌱"},
+  {id:"youth",label:"Dashboard",desc:"Wellness check-in, mood, care team",emoji:"🌱"},
+  {id:"youth",label:"Early Youth Dashboard",desc:"Ages 10-14 · Mood check-in · Journaling · Parent support · School team · Coping toolkit",emoji:"🌱"},
+  {id:"youth",label:"Middle Youth Dashboard",desc:"Ages 15-17 · Mood tracking · Journaling · Counselor support · Goal setting",emoji:"🌿"},
+  {id:"youth",label:"Older Youth Dashboard",desc:"Ages 18-24 · Transition planning · Independent care · Career goals",emoji:"🌳"},
+  {id:"youth",label:"Adult Dashboard",desc:"Ages 25+ · Care coordination · Appointments · Wellness plans · Community resources",emoji:"👤"},
+  {id:"youth",label:"Veteran Dashboard",desc:"Veterans · Care coordination · Crisis support · Military transition · Peer support",emoji:"🎖️"},
   {id:"journal",label:"Journaling & Mood",desc:"18 therapeutic prompts and mood tracking",emoji:"📓"},
   {id:"mood",label:"Mood History",desc:"Weekly and monthly mood charts and insights",emoji:"📈"},
   {id:"parent",label:"Parent / Caregiver",desc:"Support request, consent, referral tracking",emoji:"🏡"},
@@ -495,7 +586,7 @@ const GlobalSearch=({nav,onClose})=>{
 // ══════════════════════════════════════════════════════════
 const PAGE_META={
   home:{label:"Home",parent:null},
-  youth:{label:"Youth Dashboard",parent:"home"},
+  youth:{label:"Dashboard",parent:"home"},
   journal:{label:"Journaling & Mood",parent:"youth"},
   mood:{label:"Mood History",parent:"youth"},
   parent:{label:"Parent / Caregiver",parent:"home"},
@@ -621,11 +712,11 @@ const NotificationsPanel=({onClose,nav})=>{
 // Real integration: see auth-integration.js reference file
 // ══════════════════════════════════════════════════════════
 const DEMO_USERS = [
-  {id:"u1", name:"Jordan Thompson",    email:"jordan.t@student.jcs.edu",      role:"Youth",    org:"Parker High School",           avatar:"JT", color:"#0C7A6A", bg:"#EDFAF6", provider:"microsoft"},
-  {id:"u2", name:"Ms. Sarah Thompson", email:"s.thompson@gmail.com",           role:"Parent",   org:"Parent / Guardian",            avatar:"ST", color:"#1D4ED8", bg:"#EFF6FF", provider:"google"},
-  {id:"u3", name:"Tamara Johnson",     email:"tjohnson@jeffersonhigh.k12.al.us",role:"School",  org:"Jefferson High School",        avatar:"TJ", color:"#92400E", bg:"#FFFBEB", provider:"microsoft"},
-  {id:"u4", name:"Dr. Marcus Williams",email:"m.williams@jcbh.org",            role:"Provider", org:"Jefferson County BH",          avatar:"MW", color:"#047857", bg:"#ECFDF5", provider:"microsoft"},
-  {id:"u5", name:"Maria Lopez",        email:"m.lopez@econnectyouth.org",      role:"Admin",    org:"EPSE Enterprises LLC",         avatar:"ML", color:"#5B21B6", bg:"#F5F3FF", provider:"microsoft"},
+  {id:"u1", name:"Jordan Thompson",    email:"jordan.t@student.jcs.edu",      role:"Youth",    population:"MIDDLE_YOUTH",org:"Parker High School",    avatar:"JT", color:"#0C7A6A", bg:"#EDFAF6", provider:"microsoft", dob:"2010-04-15"},
+  {id:"u2", name:"Ms. Sarah Thompson", email:"s.thompson@gmail.com",           role:"Parent",   population:null,          org:"Parent / Guardian",     avatar:"ST", color:"#1D4ED8", bg:"#EFF6FF", provider:"google",     dob:null},
+  {id:"u3", name:"Tamara Johnson",     email:"tjohnson@jeffersonhigh.k12.al.us",role:"School",  population:null,          org:"Jefferson High School", avatar:"TJ", color:"#92400E", bg:"#FFFBEB", provider:"microsoft",  dob:null},
+  {id:"u4", name:"Fictional Provider — Dr. Marcus Williams",email:"m.williams@jcbh.org",role:"Provider",population:null,org:"Jefferson County BH",   avatar:"MW", color:"#047857", bg:"#ECFDF5", provider:"microsoft",  dob:null},
+  {id:"u5", name:"Maria Lopez",        email:"m.lopez@econnectyouth.org",      role:"Admin",    population:null,          org:"EPSE Enterprises LLC",  avatar:"ML", color:"#5B21B6", bg:"#F5F3FF", provider:"microsoft",  dob:null},
 ];
 
 const ROLE_DESCRIPTIONS = {
@@ -713,7 +804,7 @@ const SignInPage = ({onSignIn}) => {
         {/* Brand */}
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{width:64,height:64,borderRadius:18,background:"rgba(255,255,255,.2)",border:"2px solid rgba(255,255,255,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,margin:"0 auto 16px",boxShadow:"0 4px 20px rgba(0,0,0,.2)"}}>🔗</div>
-          <div style={{fontSize:26,fontWeight:900,color:"white",marginBottom:4}}>E-Connect Youth</div>
+          <div style={{fontSize:26,fontWeight:900,color:"white",marginBottom:4}}>E-Connect</div>
           <div style={{fontSize:14,color:"rgba(255,255,255,.75)"}}>EPSE Enterprises LLC · Mental Health Coordination</div>
         </div>
 
@@ -837,7 +928,7 @@ const SignInPage = ({onSignIn}) => {
 
         <p style={{textAlign:"center",fontSize:12,color:"rgba(255,255,255,.6)",marginTop:20}}>
           EPSE Enterprises LLC · epse2021.org · (205) 675-0169<br/>
-          Patent Application No. 63875629 · All prototype data is fictional
+          Patent Application No. 63875629 · All data fictional · EPSE Enterprises LLC
         </p>
       </div>
     </div>
@@ -851,7 +942,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
   const secs=[
     {label:"Main",items:[
       {id:"home",e:"🏠",label:"Home"},
-      {id:"youth",e:"🌱",label:"Youth Dashboard"},
+      {id:"youth",e:"🌱",label:"Dashboard"},
       {id:"journal",e:"📓",label:"Journaling & Mood"},
       {id:"mood",e:"📈",label:"Mood History"},
       {id:"parent",e:"🏡",label:"Parent / Caregiver"},
@@ -878,6 +969,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
       {id:"appointments",e:"📅",label:"Appointments"},
       {id:"telehealth",e:"📹",label:"Telehealth"},
       {id:"school_dash",e:"🏫",label:"School District"},
+      {id:"intake",e:"📋",label:"Client Intake"},
       {id:"caregiver_tips",e:"🧡",label:"Caregiver Tips"},
       {id:"quick_referral",e:"⚡",label:"Quick Referral"},
       {id:"calendar",e:"📆",label:"Availability Calendar"},
@@ -891,7 +983,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
         <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:10}}>
           <div style={{width:40,height:40,borderRadius:12,flexShrink:0,background:"linear-gradient(135deg,#0C7A6A,#1D4ED8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,boxShadow:"0 2px 8px rgba(12,122,106,.35)"}}>🔗</div>
           <div>
-            <div style={{fontSize:14.5,fontWeight:900,color:"var(--tx1)",lineHeight:1.2}}>E-Connect Youth</div>
+            <div style={{fontSize:14.5,fontWeight:900,color:"var(--tx1)",lineHeight:1.2}}>E-Connect</div>
             <div style={{fontSize:10.5,color:"var(--tx5)",fontWeight:600}}>EPSE Enterprises LLC</div>
           </div>
         </div>
@@ -953,18 +1045,39 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
   );
 };
 
-const RoleBar=({role,setRole,nav,onNotif,lang,setLang,simpleMode,setSimpleMode})=>{
+const RoleBar=({role,setRole,nav,onNotif,lang,setLang,simpleMode,setSimpleMode,signedIn,currentUser})=>{
   const roles=[{r:"Youth",e:"🌱",page:"youth"},{r:"Parent",e:"🏡",page:"parent"},{r:"School",e:"🏫",page:"school"},{r:"Provider",e:"🩺",page:"provider"},{r:"Admin",e:"🔗",page:"coordinator"}];
+  const[showDemoSwitch,setShowDemoSwitch]=useState(false);
+  // After real sign-in, derive role info from currentUser
+  const signedInRole=currentUser?.role;
+  const signedInPop=currentUser?.population;
+  const popMeta=signedInPop?POPULATION_META[signedInPop]:null;
   return(
     <div style={{background:"var(--card)",borderBottom:"1px solid var(--bdr)",padding:"9px 26px",display:"flex",alignItems:"center",gap:12,flexShrink:0,flexWrap:"wrap"}}>
-      <span style={{fontSize:12,fontWeight:700,color:"var(--tx5)",whiteSpace:"nowrap"}}>Viewing as:</span>
-      <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-        {roles.map(({r,e,page})=>(
-          <button key={r} onClick={()=>{setRole(r);nav(page);}} aria-pressed={role===r} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 14px",borderRadius:99,fontSize:13,fontWeight:700,fontFamily:"inherit",cursor:"pointer",transition:"all .14s",border:"1.5px solid",borderColor:role===r?"var(--teal)":"var(--bdr)",background:role===r?"var(--teal)":"var(--card)",color:role===r?"white":"var(--tx2)",boxShadow:role===r?"0 2px 8px rgba(12,122,106,.28)":"none",minHeight:36}}>
-            {e} {r}
-          </button>
-        ))}
-      </div>
+      {signedIn&&signedInRole&&!showDemoSwitch?(
+        // ── Signed-in: show current role + population, hide role switcher ──
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 13px",borderRadius:99,background:"var(--teal)",color:"white",fontSize:13,fontWeight:800}}>
+            {roles.find(r=>r.r===signedInRole)?.e||"👤"} {signedInRole}
+          </div>
+          {popMeta&&<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:99,background:popMeta.bg,color:popMeta.color,border:`1.5px solid ${popMeta.border}`,fontSize:12.5,fontWeight:800}}>{popMeta.icon} {popMeta.label}</div>}
+          {currentUser?.veteran&&<Badge v="red" xs>🎖️ Veteran</Badge>}
+          <button onClick={()=>setShowDemoSwitch(true)} style={{background:"none",border:"1px dashed var(--bdr)",borderRadius:99,padding:"4px 10px",cursor:"pointer",fontSize:11.5,color:"var(--tx5)",fontFamily:"inherit"}}>Demo: switch role</button>
+        </div>
+      ):(
+        // ── Demo mode: full role switcher visible ──
+        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <span style={{fontSize:12,fontWeight:700,color:"var(--tx5)",whiteSpace:"nowrap"}}>Viewing as:</span>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+            {roles.map(({r,e,page})=>(
+              <button key={r} onClick={()=>{setRole(r);nav(page);setShowDemoSwitch(false);}} aria-pressed={role===r} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 14px",borderRadius:99,fontSize:13,fontWeight:700,fontFamily:"inherit",cursor:"pointer",transition:"all .14s",border:"1.5px solid",borderColor:role===r?"var(--teal)":"var(--bdr)",background:role===r?"var(--teal)":"var(--card)",color:role===r?"white":"var(--tx2)",boxShadow:role===r?"0 2px 8px rgba(12,122,106,.28)":"none",minHeight:36}}>
+                {e} {r}
+              </button>
+            ))}
+          </div>
+          {signedIn&&<button onClick={()=>setShowDemoSwitch(false)} style={{background:"none",border:"1px solid var(--bdr)",borderRadius:99,padding:"4px 10px",cursor:"pointer",fontSize:11.5,color:"var(--tx5)",fontFamily:"inherit"}}>✕ Close</button>}
+        </div>
+      )}
       <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:10}}>
         <div style={{display:"flex",alignItems:"center",gap:6}}>
           <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green)"}}/>
@@ -995,7 +1108,11 @@ const RoleBar=({role,setRole,nav,onNotif,lang,setLang,simpleMode,setSimpleMode})
 // ══════════════════════════════════════════════════════════
 // A — YOUTH DASHBOARD (teen-friendly, bright, encouraging)
 // ══════════════════════════════════════════════════════════
-const YouthDash=({nav})=>{
+const YouthDash=({nav,currentUser})=>{
+  // Derive population from currentUser or default to MIDDLE_YOUTH for Jordan T. demo
+  const pop=currentUser?.population||"MIDDLE_YOUTH";
+  const meta=POPULATION_META[pop]||POPULATION_META.MIDDLE_YOUTH;
+  const teamLabel=meta.teamLabel;
   const[mood,setMood]=useState(4);const[stress,setStress]=useState(3);
   const[note,setNote]=useState("");const[done,setDone]=useState(false);
   const[msg,setMsg]=useState("");
@@ -1010,7 +1127,24 @@ const YouthDash=({nav})=>{
 
   return(
     <div className="pg">
-      {/* Teen-friendly hero */}
+      {/* Population-aware header bar */}
+      {pop&&(
+        <div style={{display:"flex",alignItems:"center",gap:12,padding:"11px 16px",borderRadius:"var(--r-sm)",background:POPULATION_META[pop].bg,border:`1.5px solid ${POPULATION_META[pop].border}`,marginBottom:16}}>
+          <span style={{fontSize:22}}>{POPULATION_META[pop].icon}</span>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:800,color:POPULATION_META[pop].color}}>{POPULATION_META[pop].label} · {teamLabel}</div>
+            <div style={{fontSize:12.5,color:"var(--tx5)"}}>
+              {pop==="EARLY_YOUTH"&&"Daily check-in · Journaling · Parent support · School team · Coping toolkit"}
+              {pop==="MIDDLE_YOUTH"&&"Mood tracking · Journaling · Counselor support · Goal setting · Crisis resources"}
+              {pop==="OLDER_YOUTH"&&"Transition planning · Independent care · Career goals · Behavioral health support"}
+              {pop==="ADULT"&&"Care coordination · Appointments · Wellness plans · Community resources"}
+              {pop==="VETERAN"&&"Care coordination · Crisis support · Veteran resources · Military transition · Peer support"}
+            </div>
+          </div>
+          <PopBadge pop={pop}/>
+        </div>
+      )}
+      {/* Hero */}
       <div style={{background:"linear-gradient(135deg,#0C7A6A,#1D4ED8)",borderRadius:"var(--r-lg)",padding:"28px 32px",marginBottom:22,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",right:-20,top:-20,width:180,height:180,borderRadius:"50%",background:"rgba(255,255,255,.07)"}}/>
         <div style={{position:"relative",zIndex:2}}>
@@ -1094,7 +1228,7 @@ const YouthDash=({nav})=>{
 
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Card>
-            <h2 style={{fontSize:15,fontWeight:800,marginBottom:14}}>🩺 My care team</h2>
+            <h2 style={{fontSize:15,fontWeight:800,marginBottom:14}}>🩺 {teamLabel}</h2>
             {[{init:"SR",name:"Fictional Provider — Ms. Sofia Rivera",role:"School Counselor · Parker HS",bg:"#EDFAF6",c:"#0C7A6A",status:"Online now"},{init:"MW",name:"Fictional Provider — Dr. Marcus Williams",role:"Therapist · Jefferson County BH",bg:"#EFF6FF",c:"#1D4ED8",status:"Next: May 22"},{init:"ML",name:"Fictional Provider — Maria Lopez",role:"Care Coordinator",bg:"#F5F3FF",c:"#5B21B6",status:"Available"}].map((p,i,a)=>(
               <div key={p.name}>
                 {i>0&&<HR my={10}/>}
@@ -1493,29 +1627,44 @@ const ProgressPage=()=>{
 // ══════════════════════════════════════════════════════════
 const ProviderMatchingPage=()=>{
   const[selected,setSelected]=useState(null);
-  const[filters,setFilters]=useState({medicaid:false,telehealth:false,available:false});
+  const[filters,setFilters]=useState({medicaid:false,telehealth:false,available:false,veteran:false});
+  const[popFilter,setPopFilter]=useState("All");
 
   const filtered=PROVIDERS.filter(p=>
     (!filters.medicaid||p.medicaid)&&
     (!filters.telehealth||p.telehealth)&&
-    (!filters.available||p.slots>0)
+    (!filters.available||p.slots>0)&&
+    (!filters.veteran||p.veteranSpecialist)&&
+    (popFilter==="All"||p.populations.includes(popFilter))
   );
 
   return(
     <div className="pg">
-      <EW>AI-Assisted Provider Matching</EW>
+      <EW>AI-Assisted Provider Matching — All Populations</EW>
       <h1 style={{fontSize:28,fontWeight:900,marginBottom:6}}>👩‍⚕️ Find the right provider</h1>
-      <p style={{fontSize:15,color:"var(--tx4)",marginBottom:18}}>Providers matched to Jordan's profile — specialty, insurance, availability, and telehealth preference. All matches require care coordinator review before presenting to families.</p>
+      <p style={{fontSize:15,color:"var(--tx4)",marginBottom:18}}>Providers matched by population type, specialty, insurance, availability, and telehealth preference. All matches require care coordinator review before presenting to clients.</p>
 
       <Card sx={{marginBottom:20,padding:"14px 18px"}}>
+        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",marginBottom:10}}>
+          <span style={{fontSize:13,fontWeight:700,color:"var(--tx4)"}}>Population:</span>
+          {["All","EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH","ADULT","VETERAN"].map(f=>(
+            <button key={f} onClick={()=>setPopFilter(f)} style={{padding:"5px 12px",borderRadius:99,fontSize:12.5,fontWeight:700,border:`1.5px solid ${popFilter===f?"var(--teal)":"var(--bdr)"}`,background:popFilter===f?"var(--teal)":"var(--card)",color:popFilter===f?"white":"var(--tx3)",cursor:"pointer",fontFamily:"inherit",transition:"all .14s"}}>
+              {f==="All"?"All populations":POPULATION_META[f]?`${POPULATION_META[f].icon} ${POPULATION_META[f].label}`:f}
+            </button>
+          ))}
+        </div>
         <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
-          <span style={{fontSize:14,fontWeight:700,color:"var(--tx3)"}}>Filter:</span>
-          {[{k:"medicaid",l:"Medicaid accepted"},{k:"telehealth",l:"Telehealth available"},{k:"available",l:"Has open slots"}].map(f=>(
-            <label key={f.k} style={{display:"flex",alignItems:"center",gap:7,fontSize:14,cursor:"pointer",fontWeight:600}}>
-              <input type="checkbox" checked={filters[f.k]} onChange={e=>setFilters(p=>({...p,[f.k]:e.target.checked}))} style={{accentColor:"var(--teal)",width:16,height:16}}/>
+          <span style={{fontSize:13,fontWeight:700,color:"var(--tx4)"}}>Filter:</span>
+          {[{k:"medicaid",l:"Medicaid"},{k:"telehealth",l:"Telehealth"},{k:"available",l:"Open slots"}].map(f=>(
+            <label key={f.k} style={{display:"flex",alignItems:"center",gap:7,fontSize:13.5,cursor:"pointer",fontWeight:600}}>
+              <input type="checkbox" checked={filters[f.k]} onChange={e=>setFilters(p=>({...p,[f.k]:e.target.checked}))} style={{accentColor:"var(--teal)",width:15,height:15}}/>
               {f.l}
             </label>
           ))}
+          <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13.5,cursor:"pointer",fontWeight:700,color:"#7F1D1D"}}>
+            <input type="checkbox" checked={filters.veteran} onChange={e=>setFilters(p=>({...p,veteran:e.target.checked}))} style={{accentColor:"#B91C1C",width:15,height:15}}/>
+            🎖️ Veteran specialists only
+          </label>
           <div style={{marginLeft:"auto"}}><Badge v="teal">{filtered.length} providers found</Badge></div>
         </div>
       </Card>
@@ -1537,8 +1686,12 @@ const ProviderMatchingPage=()=>{
                   <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
                     {p.medicaid&&<Badge v="teal" xs>✓ Medicaid</Badge>}
                     {p.telehealth&&<Badge v="blue" xs>Telehealth</Badge>}
+                    {p.veteranSpecialist&&<Badge v="red" xs>🎖️ Veteran specialist</Badge>}
                     <Badge v="gray" xs>Wait: {p.wait}</Badge>
-                    <Badge v="gray" xs>Languages: {p.languages}</Badge>
+                    <Badge v="gray" xs>{p.languages}</Badge>
+                  </div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:4}}>
+                    {p.populations.map(pop=><PopBadge key={pop} pop={pop} xs/>)}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
                     <Stars rating={p.rating}/>
@@ -1573,7 +1726,17 @@ const ProviderMatchingPage=()=>{
                   <span style={{fontSize:13.5,fontWeight:700,color:"var(--tx2)"}}>{v}</span>
                 </div>
               ))}
-              <div style={{fontSize:14,fontWeight:700,margin:"14px 0 8px"}}>Insurance accepted</div>
+              <div style={{fontSize:14,fontWeight:700,margin:"14px 0 8px"}}>Populations served</div>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
+                {p.populations.map(pop=><PopBadge key={pop} pop={pop} xs/>)}
+              </div>
+              {p.veteranSpecialist&&(
+                <div style={{padding:"9px 12px",borderRadius:"var(--r-sm)",background:"#FEE2E2",border:"1px solid #FCA5A5",marginBottom:10}}>
+                  <div style={{fontSize:13,fontWeight:800,color:"#7F1D1D"}}>🎖️ Veteran-specialized provider</div>
+                  <div style={{fontSize:12,color:"var(--tx4)"}}>Trained in military trauma, PTSD, and reintegration support. Accepts TRICARE and VA Community Care.</div>
+                </div>
+              )}
+              <div style={{fontSize:14,fontWeight:700,margin:"10px 0 8px"}}>Insurance accepted</div>
               <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
                 {p.insurance.map(ins=><Badge key={ins} v="teal" xs>{ins}</Badge>)}
               </div>
@@ -1809,6 +1972,8 @@ const TreatmentPlanPage=()=>{
 // ══════════════════════════════════════════════════════════
 const SessionNotesPage=()=>{
   const[saved,setSaved]=useState(false);
+  const[noteClient,setNoteClient]=useState("EC-2025-0493");
+  const selectedRef=REFERRALS.find(r=>r.id===noteClient)||REFERRALS[2];
   const[startTime,setStartTime]=useState("15:30");
   const[endTime,setEndTime]=useState("16:30");
   const[format,setFormat]=useState("telehealth");
@@ -1903,10 +2068,24 @@ Service delivered via HIPAA-compliant telehealth platform. Patient consent for t
           <Card sx={{marginBottom:18}}>
             <h2 style={{fontSize:15,fontWeight:800,marginBottom:16,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>👤 Session header</h2>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
-              <div><label style={{display:"block",fontSize:13,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>Client</label><select style={iSt} onFocus={iFoc} onBlur={iBlr}><option>Jordan T. — EC-2025-0493</option></select></div>
+              <div>
+                <label style={{display:"block",fontSize:13,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>Client</label>
+                <select style={iSt} onFocus={iFoc} onBlur={iBlr} onChange={e=>setNoteClient(e.target.value)}>
+                  {REFERRALS.map(r=><option key={r.id} value={r.id}>{r.name} — {r.id}</option>)}
+                </select>
+              </div>
               <div><label style={{display:"block",fontSize:13,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>Session date</label><input type="date" defaultValue="2025-05-22" style={iSt} onFocus={iFoc} onBlur={iBlr}/></div>
               <div><label style={{display:"block",fontSize:13,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>Session #</label><input defaultValue="3" style={iSt} onFocus={iFoc} onBlur={iBlr}/></div>
             </div>
+            {/* Population + veteran indicator */}
+            {selectedRef&&(
+              <div style={{display:"flex",gap:10,alignItems:"center",padding:"10px 14px",borderRadius:"var(--r-sm)",background:POPULATION_META[selectedRef.population]?.bg||"var(--bg2)",border:`1.5px solid ${POPULATION_META[selectedRef.population]?.border||"var(--bdr)"}`,marginBottom:14}}>
+                <PopBadge pop={selectedRef.population} xs/>
+                {selectedRef.veteran&&<Badge v="red" xs>🎖️ Veteran</Badge>}
+                <span style={{fontSize:12.5,color:"var(--tx4)"}}>Age {selectedRef.age} · {selectedRef.concern}</span>
+                {selectedRef.guardian&&<span style={{fontSize:12,color:"var(--tx5)"}}>Guardian: {selectedRef.guardian}</span>}
+              </div>
+            )}
 
             {/* ── TIME: start / end / duration ── */}
             <div style={{background:"#EDFAF6",borderRadius:"var(--r-sm)",padding:"14px 16px",marginBottom:14,border:"1.5px solid var(--teal-mid)"}}>
@@ -2026,8 +2205,11 @@ Service delivered via HIPAA-compliant telehealth platform. Patient consent for t
                   <option>ALL Kids</option>
                   <option>Blue Cross Blue Shield AL</option>
                   <option>Aetna</option>
+                  <option>TRICARE (Veteran / Military)</option>
+                  <option>VA Community Care</option>
                   <option>Self-pay / sliding scale</option>
                 </select>
+                {selectedRef?.veteran&&<div style={{fontSize:12,color:"#B91C1C",fontWeight:700,marginTop:4}}>🎖️ Veteran client — verify TRICARE or VA Community Care eligibility before billing Medicaid.</div>}
               </div>
             </div>
 
@@ -2216,7 +2398,7 @@ const ImpactReportPage=()=>(
         <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(255,255,255,.16)",border:"1.5px solid rgba(255,255,255,.28)",borderRadius:99,padding:"5px 15px",fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:"white",marginBottom:18}}>
           📊 Impact Report · May 2025 · Patent App. 63875629
         </div>
-        <h1 style={{fontFamily:"'Lora',serif",fontSize:42,fontWeight:700,color:"white",marginBottom:16,lineHeight:1.12}}>E-Connect Youth<br/><em style={{fontStyle:"italic",color:"#A7F3D0"}}>Transforming Youth Mental Health Access</em></h1>
+        <h1 style={{fontFamily:"'Lora',serif",fontSize:42,fontWeight:700,color:"white",marginBottom:16,lineHeight:1.12}}>E-Connect<br/><em style={{fontStyle:"italic",color:"#A7F3D0"}}>Transforming Youth Mental Health Access</em></h1>
         <p style={{fontSize:16,color:"rgba(255,255,255,.82)",maxWidth:520,marginBottom:28,lineHeight:1.7}}>EPSE Enterprises LLC is building the infrastructure layer for youth behavioral health coordination in Alabama — and scaling nationally. E-Connect Youth is the platform that makes it possible.</p>
         <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:16}}>
           {[["4,280","Youth served YTD"],["3.2 days","Time to first contact"],["$0","Platform cost to families"],["18","Clinical modalities"],["94%","Family satisfaction"]].map(([n,l])=>(
@@ -2618,6 +2800,7 @@ const EHRPage=()=>{
 };
 
 const ParentDash=({nav})=>{
+  const[guardianConsent,setGuardianConsent]=useState(false);
   const[consent,setConsent]=useState([{id:1,label:"School counselor access",desc:"Referral status and appointment dates only.",on:true},{id:2,label:"Assigned therapist access",desc:"Full referral, check-ins, and session notes.",on:true},{id:3,label:"Care coordinator",desc:"Referral status and scheduling.",on:true},{id:4,label:"Primary care provider",desc:"Mental health updates shared with PCP.",on:false},{id:5,label:"EHR data sharing (Epic/OHR)",desc:"Clinical data synced to Alabama OHR via FHIR.",on:false},{id:6,label:"SMS appointment reminders",desc:"Text reminders 48 hours before appointments.",on:true}]);
   const[submitted,setSubmitted]=useState(false);
   const upd=(id,v)=>setConsent(c=>c.map(i=>i.id===id?{...i,on:v}:i));
@@ -2642,7 +2825,21 @@ const ParentDash=({nav})=>{
           <label style={{display:"block",fontSize:13.5,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>In your own words</label>
           <textarea defaultValue="Jordan has been refusing to go to school on Mondays and seems very anxious on Sunday evenings." style={{...iSt,minHeight:80,marginBottom:14}} onFocus={iFoc} onBlur={iBlr}/>
           <Alert type="mint" style={{marginBottom:14}}>🔒 Protected under HIPAA-informed guidelines.</Alert>
-          {!submitted?<Btn v="pri" full sz="lg" onClick={()=>setSubmitted(true)}>Submit support request →</Btn>:<Alert type="success"><strong>Submitted!</strong> Reference EC-2025-0500. Coordinator will contact you within 1 business day.</Alert>}
+          {/* Guardian consent hard gate */}
+          <div style={{padding:"13px 15px",borderRadius:"var(--r-sm)",background:"#EDFAF6",border:"1.5px solid var(--teal-mid)",marginBottom:14}}>
+            <label style={{display:"flex",alignItems:"flex-start",gap:11,cursor:"pointer"}}>
+              <input type="checkbox" checked={guardianConsent} onChange={e=>setGuardianConsent(e.target.checked)} style={{accentColor:"var(--teal)",width:18,height:18,marginTop:2}}/>
+              <div>
+                <div style={{fontSize:14,fontWeight:800,color:"var(--teal-h)"}}>Guardian consent — required for clients under 18</div>
+                <div style={{fontSize:12.5,color:"var(--tx4)"}}>I confirm I am the parent or legal guardian of the child named above and consent to referral for mental health services and necessary information sharing with the care coordination team.</div>
+              </div>
+            </label>
+          </div>
+          {!submitted
+            ?<Btn v="pri" full sz="lg" disabled={!guardianConsent} onClick={()=>setSubmitted(true)}>Submit support request →</Btn>
+            :<Alert type="success"><strong>Submitted!</strong> Reference EC-2025-0500. Coordinator will contact you within 1 business day.</Alert>
+          }
+          {!guardianConsent&&!submitted&&<p style={{fontSize:12.5,color:"var(--tx5)",textAlign:"center",marginTop:8}}>Guardian consent is required to submit a referral for a minor.</p>}
         </Card>
         <div style={{display:"flex",flexDirection:"column",gap:18}}>
           <Card sx={{borderLeft:"5px solid var(--teal)"}}>
@@ -2688,7 +2885,7 @@ const SchoolForm=()=>{
                 <div key={l} style={{display:"flex",flexDirection:"column"}}>
                   <label style={{display:"block",fontSize:13.5,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>{l}</label>
                   {l==="Grade"
-                    ? <select style={iSt} onFocus={iFoc} onBlur={iBlr}><option>10th Grade</option><option>9th Grade</option><option>11th Grade</option><option>12th Grade</option></select>
+                    ? <select style={iSt} onFocus={iFoc} onBlur={iBlr}><option>10th Grade</option><option>9th Grade</option><option>11th Grade</option><option>12th Grade</option><option>Post-secondary / College</option><option>N/A — adult client</option></select>
                     : <input defaultValue={v} style={iSt} onFocus={iFoc} onBlur={iBlr}/>
                   }
                 </div>
@@ -2737,6 +2934,7 @@ const SchoolForm=()=>{
 
 const ProviderDash=({nav})=>{
   const[accepted,setAccepted]=useState({});
+  const[popFilter,setPopFilter]=useState('All');
   return(
     <div className="pg">
       <EW>Provider Portal — Jefferson County Behavioral Health</EW>
@@ -2749,16 +2947,30 @@ const ProviderDash=({nav})=>{
         <Stat value="94%" label="Appt. show rate" delta="↑ vs 89%" up icon="✓" accent="#047857" bg="#ECFDF5"/>
       </div>
       <Card sx={{marginBottom:22}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><h2 style={{fontSize:16,fontWeight:800}}>📥 Incoming referrals</h2><Badge v="red">4 new</Badge></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <h2 style={{fontSize:16,fontWeight:800}}>📥 Incoming referrals</h2>
+          <Badge v="red">4 new</Badge>
+        </div>
+        {/* Population filter — added per architecture spec */}
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
+          <span style={{fontSize:12.5,fontWeight:700,color:"var(--tx5)"}}>Filter by population:</span>
+          {["All","EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH","ADULT","VETERAN"].map(f=>(
+            <button key={f} onClick={()=>setPopFilter(f)}
+              style={{padding:"5px 12px",borderRadius:99,fontSize:12.5,fontWeight:700,border:`1.5px solid ${popFilter===f?"var(--teal)":"var(--bdr)"}`,background:popFilter===f?"var(--teal)":"var(--card)",color:popFilter===f?"white":"var(--tx3)",cursor:"pointer",fontFamily:"inherit",transition:"all .14s"}}>
+              {f==="All"?"All populations":POPULATION_META[f]?`${POPULATION_META[f].icon} ${POPULATION_META[f].label}`:f}
+            </button>
+          ))}
+        </div>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
-          <thead><tr>{["Youth","Age","Risk","Concern","CSSRS","Consent","Action"].map(h=><TH key={h}>{h}</TH>)}</tr></thead>
+          <thead><tr>{["Client","Age","Population","Risk","Concern","CSSRS","Consent","Action"].map(h=><TH key={h}>{h}</TH>)}</tr></thead>
           <tbody>
-            {REFERRALS.filter(r=>r.status!=="closed"&&r.status!=="active").map((r,i)=>(
+            {REFERRALS.filter(r=>r.status!=="closed"&&r.status!=="active"&&(popFilter==="All"||r.population===popFilter)).map((r,i)=>(
               <tr key={r.id} onMouseEnter={e=>e.currentTarget.style.background="var(--bg2)"} onMouseLeave={e=>e.currentTarget.style.background="var(--card)"}>
                 <td style={{padding:"12px 13px",fontWeight:800,fontSize:14}}>{r.name}</td>
                 <td style={{padding:"12px 13px",fontSize:14}}>{r.age}</td>
+                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} xs/></td>
                 <td style={{padding:"12px 13px"}}><RiskBadge level={r.risk}/></td>
-                <td style={{padding:"12px 13px",fontSize:13,color:"var(--tx4)",maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
+                <td style={{padding:"12px 13px",fontSize:13,color:"var(--tx4)",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
                 <td style={{padding:"12px 13px"}}><Badge v={r.cssrs>=3?"red":r.cssrs>=1?"amber":"green"} xs>{r.cssrs}/6</Badge></td>
                 <td style={{padding:"12px 13px"}}>{r.consent?<Badge v="green" xs>✓</Badge>:<Badge v="amber" xs>⏳</Badge>}</td>
                 <td style={{padding:"12px 13px"}}>
@@ -2816,7 +3028,10 @@ const CoordDash=({nav})=>{
             <div key={r.id} style={{display:"flex",gap:13,alignItems:"flex-start",padding:"14px 15px",borderRadius:"var(--r)",border:`1.5px solid ${r.risk==="urgent"?"#FCA5A5":r.risk==="elevated"?"#FCD34D":"#6EE7B7"}`,background:r.risk==="urgent"?"#FFF5F5":r.risk==="elevated"?"#FFFBEB":"#ECFDF5",marginBottom:10}}>
               <div style={{flex:1}}>
                 <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:6,alignItems:"center"}}>
-                  <strong style={{fontSize:14}}>{r.name}, {r.age}</strong><RiskBadge level={r.risk}/>
+                  <strong style={{fontSize:14}}>{r.name}, {r.age}</strong>
+                  <PopBadge pop={r.population} xs/>
+                  <RiskBadge level={r.risk}/>
+                  {r.veteran&&<Badge v="red" xs>🎖️ Veteran</Badge>}
                   {r.cssrs>=3&&<Badge v="red" xs>⚠ CSSRS {r.cssrs}</Badge>}
                   {!r.consent&&<Badge v="amber" xs>⏳ Consent</Badge>}
                 </div>
@@ -2836,7 +3051,7 @@ const CoordDash=({nav})=>{
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead><tr>{["Provider","Specialty","Slots"].map(h=><TH key={h}>{h}</TH>)}</tr></thead>
               <tbody>
-                {[{n:"Fictional Provider — Dr. Marcus Williams",s:"Anxiety·CBT",slots:3},{n:"Fictional Provider — Sarah Chen",s:"Trauma·DBT",slots:1},{n:"Fictional Provider — JCBH Youth Services",s:"General BH",slots:8},{n:"Fictional Provider — Wellstone Youth",s:"Family·ADHD",slots:5}].map((p,i)=>(
+                {[{n:"Fictional Provider — Dr. Marcus Williams",s:"Anxiety·CBT",slots:3},{n:"Fictional Provider — Sarah Chen",s:"Trauma·DBT",slots:1},{n:"Fictional Provider — JCBH Behavioral Health Services",s:"General BH",slots:8},{n:"Fictional Provider — Wellstone Youth",s:"Family·ADHD",slots:5}].map((p,i)=>(
                   <tr key={i} onMouseEnter={e=>e.currentTarget.style.background="var(--bg2)"} onMouseLeave={e=>e.currentTarget.style.background="var(--card)"}>
                     <td style={{padding:"10px 13px",fontWeight:700,fontSize:13.5}}>{p.n}</td>
                     <td style={{padding:"10px 13px",fontSize:13,color:"var(--tx4)"}}>{p.s}</td>
@@ -2864,21 +3079,35 @@ const CoordDash=({nav})=>{
 
 const TrackerPage=()=>{
   const[search,setSearch]=useState("");
-  const filtered=REFERRALS.filter(r=>!search||r.name.toLowerCase().includes(search.toLowerCase())||r.id.toLowerCase().includes(search.toLowerCase()));
+  const[popFilter,setPopFilter]=useState("All");
+  const filtered=REFERRALS.filter(r=>
+    (!search||r.name.toLowerCase().includes(search.toLowerCase())||r.id.toLowerCase().includes(search.toLowerCase()))&&
+    (popFilter==="All"||r.population===popFilter)
+  );
   return(
     <div className="pg">
       <EW>Referral Status Tracker</EW>
       <h1 style={{fontSize:28,fontWeight:900,marginBottom:6}}>📡 Referral tracker</h1>
-      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search..." onFocus={iFoc} onBlur={iBlr} style={{...iSt,maxWidth:380,marginBottom:20}}/>
+      <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:20,flexWrap:"wrap"}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name or ID..." onFocus={iFoc} onBlur={iBlr} style={{...iSt,maxWidth:280}}/>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          {["All","EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH","ADULT","VETERAN"].map(f=>(
+            <button key={f} onClick={()=>setPopFilter(f)} style={{padding:"6px 12px",borderRadius:99,fontSize:12.5,fontWeight:700,border:`1.5px solid ${popFilter===f?"var(--teal)":"var(--bdr)"}`,background:popFilter===f?"var(--teal)":"var(--card)",color:popFilter===f?"white":"var(--tx3)",cursor:"pointer",fontFamily:"inherit"}}>
+              {f==="All"?"All":POPULATION_META[f]?`${POPULATION_META[f].icon} ${POPULATION_META[f].label}`:f}
+            </button>
+          ))}
+        </div>
+      </div>
       <Card>
         <table style={{width:"100%",borderCollapse:"collapse"}}>
-          <thead><tr>{["ID","Youth","Concern","Risk","Status","CSSRS","Trauma","Days","Provider","Consent"].map(h=><TH key={h}>{h}</TH>)}</tr></thead>
+          <thead><tr>{["ID","Client","Population","Concern","Risk","Status","CSSRS","Trauma","Days","Provider","Consent"].map(h=><TH key={h}>{h}</TH>)}</tr></thead>
           <tbody>
             {filtered.map(r=>(
               <tr key={r.id} onMouseEnter={e=>e.currentTarget.style.background="var(--bg2)"} onMouseLeave={e=>e.currentTarget.style.background="var(--card)"}>
                 <td style={{padding:"11px 13px",fontWeight:800,color:"var(--teal)",fontSize:12}}>{r.id}</td>
                 <td style={{padding:"11px 13px",fontWeight:800,fontSize:14}}>{r.name}, {r.age}</td>
-                <td style={{padding:"11px 13px",fontSize:13,color:"var(--tx4)",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
+                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} xs/></td>
+                <td style={{padding:"11px 13px",fontSize:13,color:"var(--tx4)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
                 <td style={{padding:"11px 13px"}}><RiskBadge level={r.risk}/></td>
                 <td style={{padding:"11px 13px"}}><StatusBadge status={r.status}/></td>
                 <td style={{padding:"11px 13px"}}><Badge v={r.cssrs>=3?"red":r.cssrs>=1?"amber":"green"} xs>{r.cssrs}/6</Badge></td>
@@ -2899,7 +3128,19 @@ const CrisisPage=()=>(
   <div className="pg">
     <EW>Crisis Resources & Support Directory</EW>
     <h1 style={{fontSize:28,fontWeight:900,marginBottom:6}}>🔍 Crisis resources</h1>
-    <Alert type="danger" style={{marginBottom:22}}><strong>In immediate danger?</strong> Call or text <strong>988</strong> · Text HOME to <strong>741741</strong> · Call <strong>911</strong>. No registration. Free. 24/7.</Alert>
+    <Alert type="danger" style={{marginBottom:14}}><strong>In immediate danger?</strong> Call or text <strong>988</strong> · Text HOME to <strong>741741</strong> · Call <strong>911</strong>. No registration. Free. 24/7.</Alert>
+    <div style={{padding:"14px 18px",borderRadius:"var(--r)",background:"#FEE2E2",border:"2px solid #FCA5A5",marginBottom:22,display:"flex",gap:14,alignItems:"flex-start"}}>
+      <span style={{fontSize:28,flexShrink:0}}>🎖️</span>
+      <div>
+        <div style={{fontSize:15,fontWeight:900,color:"#7F1D1D",marginBottom:4}}>Veterans Crisis Line — dedicated support for veterans</div>
+        <div style={{fontSize:14,color:"#7F1D1D",marginBottom:8}}>Call or text <strong>988</strong> then press <strong>1</strong> · Chat at VeteransCrisisLine.net · Text <strong>838255</strong></div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <Badge v="red">Free · Confidential · 24/7</Badge>
+          <Badge v="red">Staffed by VA responders</Badge>
+          <Badge v="red">For veterans, service members, and their families</Badge>
+        </div>
+      </div>
+    </div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:16,marginBottom:26}}>
       {RESOURCES.map(r=>(
         <div key={r.name} style={{background:"var(--card)",borderRadius:"var(--r)",padding:"18px 20px",border:`1.5px solid ${r.bg}`,transition:"all .2s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=r.tc;e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="var(--sh)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor=r.bg;e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none"}}>
@@ -3266,16 +3507,104 @@ Future feature: session timer starts automatically and populates start/end time 
   );
 };
 
-const AnalyticsPage=()=>(
+const AnalyticsPage=()=>{
+  const[popFilter,setPopFilter]=useState("All");
+  const[ageFilter,setAgeFilter]=useState("All");
+  const[vetFilter,setVetFilter]=useState(false);
+  return(
   <div className="pg">
     <EW>Administrator Dashboard · EPSE Enterprises LLC</EW>
     <h1 style={{fontSize:28,fontWeight:900,marginBottom:6}}>📊 Program analytics & impact</h1>
-    <Alert type="success" style={{marginBottom:22}}><strong>Data period:</strong> January–May 2025 · Jefferson, Shelby, Madison counties · HIPAA Safe Harbor de-identification standards applied.</Alert>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:26}}>
-      <Stat value="4,280" label="Youth served YTD" delta="↑ 34% vs last year" up icon="🌱" accent="#0C7A6A" bg="#EDFAF6"/>
+    <Alert type="success" style={{marginBottom:16}}><strong>Data period:</strong> January–May 2025 · Jefferson, Shelby, Madison counties · HIPAA Safe Harbor de-identification standards applied.</Alert>
+    {/* Population / age / veteran filters */}
+    <Card sx={{marginBottom:20,padding:"14px 18px"}}>
+      <div style={{display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
+        <span style={{fontSize:13,fontWeight:700,color:"var(--tx4)"}}>Filter analytics:</span>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          {["All","EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH","ADULT","VETERAN"].map(f=>(
+            <button key={f} onClick={()=>setPopFilter(f)} style={{padding:"5px 12px",borderRadius:99,fontSize:12,fontWeight:700,border:`1.5px solid ${popFilter===f?"var(--teal)":"var(--bdr)"}`,background:popFilter===f?"var(--teal)":"var(--card)",color:popFilter===f?"white":"var(--tx3)",cursor:"pointer",fontFamily:"inherit"}}>
+              {f==="All"?"All populations":POPULATION_META[f]?`${POPULATION_META[f].icon} ${POPULATION_META[f].label}`:f}
+            </button>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          {[["All ages","All"],["10–14","10-14"],["15–17","15-17"],["18–24","18-24"],["25+","25+"]].map(([l,v])=>(
+            <button key={v} onClick={()=>setAgeFilter(v)} style={{padding:"5px 12px",borderRadius:99,fontSize:12,fontWeight:700,border:`1.5px solid ${ageFilter===v?"var(--blue)":"var(--bdr)"}`,background:ageFilter===v?"var(--blue)":"var(--card)",color:ageFilter===v?"white":"var(--tx3)",cursor:"pointer",fontFamily:"inherit"}}>{l}</button>
+          ))}
+        </div>
+        <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",fontSize:13,fontWeight:700}}>
+          <input type="checkbox" checked={vetFilter} onChange={e=>setVetFilter(e.target.checked)} style={{accentColor:"#B91C1C",width:15,height:15}}/>
+          <span>🎖️ Veterans only</span>
+        </label>
+        {(popFilter!=="All"||ageFilter!=="All"||vetFilter)&&(
+          <button onClick={()=>{setPopFilter("All");setAgeFilter("All");setVetFilter(false);}} style={{background:"var(--red-lt)",border:"1px solid var(--red-lt)",borderRadius:99,padding:"5px 12px",cursor:"pointer",fontSize:12,fontWeight:700,color:"var(--red)",fontFamily:"inherit"}}>✕ Clear filters</button>
+        )}
+      </div>
+      {(popFilter!=="All"||ageFilter!=="All"||vetFilter)&&(
+        <div style={{marginTop:10,fontSize:13,color:"var(--tx4)"}}>
+          Showing filtered data — in full platform, all charts update dynamically based on selection.
+          {popFilter!=="All"&&<Badge v="teal" xs style={{marginLeft:8}}>{POPULATION_META[popFilter]?.label}</Badge>}
+          {ageFilter!=="All"&&<Badge v="blue" xs style={{marginLeft:4}}>Ages {ageFilter}</Badge>}
+          {vetFilter&&<Badge v="red" xs style={{marginLeft:4}}>🎖️ Veterans</Badge>}
+        </div>
+      )}
+    </Card>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:20}}>
+      <Stat value="4,280" label="Clients served YTD" delta="↑ 34% vs last year" up icon="👥" accent="#0C7A6A" bg="#EDFAF6"/>
       <Stat value="3.2 days" label="Median time to match" delta="↓ from 5.1 days" up icon="⚡" accent="#1D4ED8" bg="#EFF6FF"/>
       <Stat value="88%" label="Referrals matched" delta="↑ 12 pts since launch" up icon="✓" accent="#047857" bg="#ECFDF5"/>
       <Stat value="642" label="Screenings completed" delta="C-SSRS + Trauma" up icon="🧪" accent="#92400E" bg="#FFFBEB"/>
+    </div>
+
+    {/* REC E: Population breakdown chart */}
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18,marginBottom:22}}>
+      <Card>
+        <h2 style={{fontSize:16,fontWeight:800,marginBottom:16}}>👥 Referrals by population type</h2>
+        {[
+          {pop:"EARLY_YOUTH",  n:1842,pct:43},
+          {pop:"MIDDLE_YOUTH", n:1198,pct:28},
+          {pop:"OLDER_YOUTH",  n:642, pct:15},
+          {pop:"ADULT",        n:385, pct:9},
+          {pop:"VETERAN",      n:213, pct:5},
+        ].map(r=>{
+          const m=POPULATION_META[r.pop];
+          return(
+            <div key={r.pop} style={{marginBottom:13}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
+                <div style={{display:"flex",alignItems:"center",gap:7}}>
+                  <span style={{fontSize:16}}>{m.icon}</span>
+                  <span style={{fontSize:14,fontWeight:600}}>{m.label}</span>
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <span style={{fontSize:13.5,fontWeight:800,color:m.color}}>{r.n.toLocaleString()}</span>
+                  <Badge v="gray" xs>{r.pct}%</Badge>
+                </div>
+              </div>
+              <Bar pct={r.pct} color={m.color} h={9}/>
+            </div>
+          );
+        })}
+      </Card>
+      <Card>
+        <h2 style={{fontSize:16,fontWeight:800,marginBottom:16}}>🎖️ Veteran & military-connected</h2>
+        {[
+          {label:"Veterans served",n:"213",pct:5,c:"#B91C1C"},
+          {label:"Military-connected family",n:"89",pct:2,c:"#92400E"},
+          {label:"VA referrals coordinated",n:"142",pct:67,c:"#7F1D1D"},
+          {label:"TRICARE billed",n:"98",pct:46,c:"#B91C1C"},
+          {label:"Veterans Crisis Line referrals",n:"31",pct:15,c:"#7F1D1D"},
+        ].map(s=>(
+          <div key={s.label} style={{marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:14,marginBottom:5}}>
+              <span style={{fontWeight:600}}>{s.label}</span>
+              <span style={{fontWeight:800,color:s.c}}>{s.n}</span>
+            </div>
+            <Bar pct={s.pct} color={s.c} h={7}/>
+          </div>
+        ))}
+        <HR my={12}/>
+        <Alert type="warning">🎖️ Veterans Crisis Line: call or text 988, then press 1. Available 24/7 for veterans.</Alert>
+      </Card>
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:20}}>
       <Card>
@@ -3331,11 +3660,7 @@ const AnalyticsPage=()=>(
     </div>
   </div>
 );
-
-
-// ══════════════════════════════════════════════════════════
-// REC 11 — CAREGIVER TIP SHEET
-// ══════════════════════════════════════════════════════════
+};
 const CaregiverTipsPage=()=>(
   <div className="pg">
     <EW>Caregiver Support — What to Say & Do</EW>
@@ -3441,7 +3766,7 @@ const CaregiverTipsPage=()=>(
 // ══════════════════════════════════════════════════════════
 const QuickReferralPage=()=>{
   const[step,setStep]=useState(1);
-  const[form,setForm]=useState({name:"",grade:"",concern:"",urgent:false,consent:"verbal"});
+  const[form,setForm]=useState({name:"",grade:"",dob:"",veteran:false,concern:"",urgent:false,consent:"verbal"});
   const[done,setDone]=useState(false);
   const concerns=["Anxiety / worry","Depression / mood","School avoidance","Suicidality concern","Trauma / PTSD","Partner / dating violence","Gang involvement / safety","Substance use","Family crisis","General wellness"];
   if(done) return(
@@ -3485,19 +3810,28 @@ const QuickReferralPage=()=>{
         {step===1&&(
           <Card>
             <h2 style={{fontSize:17,fontWeight:800,marginBottom:20}}>Step 1 — Who are you referring?</h2>
-            <label style={{display:"block",fontSize:14,fontWeight:700,color:"var(--tx3)",marginBottom:6}}>Student name or initials <span style={{color:"var(--red)",fontSize:12}}>*</span></label>
-            <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. J.T. or Jordan T." style={{...iSt,marginBottom:16}} onFocus={iFoc} onBlur={iBlr}/>
-            <label style={{display:"block",fontSize:14,fontWeight:700,color:"var(--tx3)",marginBottom:6}}>Grade level</label>
-            <div style={{display:"flex",gap:9,flexWrap:"wrap",marginBottom:20}}>
-              {["6th","7th","8th","9th","10th","11th","12th"].map(g=>(
-                <button key={g} onClick={()=>setForm(f=>({...f,grade:g}))} style={{padding:"8px 16px",borderRadius:99,border:`2px solid ${form.grade===g?"var(--teal)":"var(--bdr)"}`,background:form.grade===g?"var(--teal)":"var(--card)",color:form.grade===g?"white":"var(--tx2)",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all .14s"}}>{g}</button>
-              ))}
+            <label style={{display:"block",fontSize:14,fontWeight:700,color:"var(--tx3)",marginBottom:6}}>Client name or initials <span style={{color:"var(--red)",fontSize:12}}>*</span></label>
+            <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. J.T. or Jordan T." style={{...iSt,marginBottom:14}} onFocus={iFoc} onBlur={iBlr}/>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+              <div>
+                <label style={{display:"block",fontSize:14,fontWeight:700,color:"var(--tx3)",marginBottom:6}}>Date of birth <span style={{color:"var(--red)",fontSize:12}}>*</span></label>
+                <input type="date" value={form.dob||""} onChange={e=>setForm(f=>({...f,dob:e.target.value}))} style={iSt} onFocus={iFoc} onBlur={iBlr}/>
+                {form.dob&&(()=>{const a=calcAge(form.dob);const pop=a!==null?getPopulation(a,form.veteran||false):null;return a!==null?<div style={{marginTop:5,display:"flex",gap:7,alignItems:"center"}}><span style={{fontSize:12.5,color:"var(--teal)",fontWeight:700}}>Age {a}</span>{pop&&<PopBadge pop={pop} xs/>}</div>:null;})()}
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:14,fontWeight:700,color:"var(--tx3)",marginBottom:6}}>Grade level <span style={{fontSize:12,fontWeight:400,color:"var(--tx5)"}}>(if applicable)</span></label>
+                {(()=>{const a=form.dob?calcAge(form.dob):null;const pop=a?getPopulation(a,false):null;const showGrade=!pop||showSchoolFields(pop);return showGrade?(<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{["6th","7th","8th","9th","10th","11th","12th"].map(g=>(<button key={g} onClick={()=>setForm(f=>({...f,grade:g}))} style={{padding:"6px 12px",borderRadius:99,border:`2px solid ${form.grade===g?"var(--teal)":"var(--bdr)"}`,background:form.grade===g?"var(--teal)":"var(--card)",color:form.grade===g?"white":"var(--tx2)",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{g}</button>))}</div>):(<div style={{padding:"10px 12px",borderRadius:"var(--r-sm)",background:"var(--bg2)",fontSize:13,color:"var(--tx5)"}}>Not applicable for {POPULATION_META[pop]?.label}</div>);})()}
+              </div>
             </div>
+            <label style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:"var(--r-sm)",border:`1.5px solid ${"#FCA5A5"}`,background:"#FFF5F5",cursor:"pointer",marginBottom:12}}>
+              <input type="checkbox" checked={form.veteran||false} onChange={e=>setForm(f=>({...f,veteran:e.target.checked}))} style={{accentColor:"#B91C1C",width:16,height:16}}/>
+              <div><div style={{fontSize:14,fontWeight:700,color:"#7F1D1D"}}>🎖️ Veteran or military-connected</div><div style={{fontSize:12,color:"var(--tx5)"}}>Assigns Veteran population category (age 18+)</div></div>
+            </label>
             <label style={{display:"flex",alignItems:"center",gap:10,padding:"13px 15px",borderRadius:"var(--r-sm)",border:`2px solid ${form.urgent?"#B91C1C":"var(--bdr)"}`,background:form.urgent?"#FFF5F5":"var(--card)",cursor:"pointer",marginBottom:20}}>
               <input type="checkbox" checked={form.urgent} onChange={e=>setForm(f=>({...f,urgent:e.target.checked}))} style={{accentColor:"#B91C1C",width:18,height:18}}/>
-              <div><div style={{fontSize:14.5,fontWeight:700,color:form.urgent?"#B91C1C":"var(--tx2)"}}>🔴 This is urgent — student needs contact within 48 hours</div><div style={{fontSize:12.5,color:"var(--tx5)"}}>Check if you have safety concerns, active crisis, or immediate need</div></div>
+              <div><div style={{fontSize:14.5,fontWeight:700,color:form.urgent?"#B91C1C":"var(--tx2)"}}>🔴 This is urgent — client needs contact within 48 hours</div><div style={{fontSize:12.5,color:"var(--tx5)"}}>Check if you have safety concerns, active crisis, or immediate need</div></div>
             </label>
-            <Btn v="pri" full sz="lg" disabled={!form.name} onClick={()=>setStep(2)}>Next — add concern →</Btn>
+            <Btn v="pri" full sz="lg" disabled={!form.name||!form.dob} onClick={()=>setStep(2)}>Next — add concern →</Btn>
           </Card>
         )}
         {step===2&&(
@@ -3577,7 +3911,7 @@ const AvailabilityCalendarPage=()=>{
   const providers=[
     {id:1,name:"Fictional Provider — Dr. Marcus Williams",spec:"Anxiety · CBT",wait:"< 1 week",medicaid:true},
     {id:2,name:"Fictional Provider — Sarah Chen, LPC-A",spec:"Trauma · DBT",wait:"< 1 week",medicaid:true},
-    {id:3,name:"Fictional Provider — JCBH Youth Services",spec:"General BH",wait:"This week",medicaid:true},
+    {id:3,name:"Fictional Provider — JCBH Behavioral Health Services",spec:"General BH",wait:"This week",medicaid:true},
   ];
 
   return(
@@ -3668,6 +4002,213 @@ const AvailabilityCalendarPage=()=>{
 // These are handled via context in the main app header
 // ══════════════════════════════════════════════════════════
 
+
+// ══════════════════════════════════════════════════════════
+// GAP 1: CLIENT INTAKE FORM — 21 EHR fields + population logic
+// ══════════════════════════════════════════════════════════
+const ClientIntakePage=()=>{
+  const[step,setStep]=useState(1);
+  const[saved,setSaved]=useState(false);
+  const[f,setF]=useState({
+    firstName:"",lastName:"",dob:"",phone:"",email:"",
+    address:"",city:"",state:"Alabama",zip:"",
+    gender:"",language:"English",race:"",
+    insuranceId:"",medicaidId:"",pcpNpi:"",refNpi:"",
+    icd10:"",medications:"no",allergies:"none",
+    mhHistory:"no",substanceUse:"no",
+    school:"",grade:"",
+    emergencyName:"",emergencyPhone:"",emergencyRel:"",
+    consentDate:"",
+    veteran:false,militaryConnected:false,branch:"",era:"",
+    guardianName:"",guardianRel:"",guardianPhone:"",guardianEmail:"",guardianConsent:false,
+    supportName:"",supportPhone:"",supportRel:"",
+    referralSource:"",referralReason:"",urgency:"routine",
+  });
+  const upd=(k,v)=>setF(p=>({...p,[k]:v}));
+  const age=calcAge(f.dob);
+  const pop=age!==null?getPopulation(age,f.veteran):null;
+  const meta=pop?POPULATION_META[pop]:null;
+  const requiresGuardian=pop?needsGuardian(pop):false;
+  const showSchool=pop?showSchoolFields(pop):true;
+  const STEPS=requiresGuardian
+    ?["Identity","Contact","Insurance","Clinical","Guardian","Referral","Review"]
+    :["Identity","Contact","Insurance","Clinical","Support","Referral","Review"];
+
+  const Lbl=({children,req})=><label style={{display:"block",fontSize:13,fontWeight:700,color:"var(--tx3)",marginBottom:5}}>{children}{req&&<span style={{color:"var(--red)",marginLeft:3}}>*</span>}</label>;
+  const Field=({label,req,children})=><div style={{marginBottom:14}}><Lbl req={req}>{label}</Lbl>{children}</div>;
+  const Row=({children})=><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:0}}>{children}</div>;
+
+  const CatBar=()=>!pop?null:(
+    <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:"var(--r-sm)",background:meta.bg,border:`1.5px solid ${meta.border}`,marginBottom:14}}>
+      <span style={{fontSize:20}}>{meta.icon}</span>
+      <div style={{flex:1}}>
+        <div style={{fontSize:13.5,fontWeight:800,color:meta.color}}>{meta.label} · Age {age}</div>
+        <div style={{fontSize:12,color:"var(--tx5)"}}>{requiresGuardian?"Guardian required":"Guardian optional"} · {showSchool?"School fields shown":"School fields hidden"}</div>
+      </div>
+      <PopBadge pop={pop} xs/>
+      {f.veteran&&<Badge v="red" xs>🎖️ Veteran</Badge>}
+    </div>
+  );
+
+  if(saved)return(
+    <div className="pg" style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:460}}>
+      <Card sx={{maxWidth:520,textAlign:"center",padding:"52px 44px"}}>
+        <div style={{fontSize:52,marginBottom:14}}>✅</div>
+        <h2 style={{fontSize:24,fontWeight:900,marginBottom:8}}>Intake complete!</h2>
+        {pop&&<div style={{marginBottom:14}}><PopBadge pop={pop}/></div>}
+        <p style={{color:"var(--tx4)",marginBottom:16,lineHeight:1.7}}>
+          Reference: <strong>EC-2025-{Math.floor(Math.random()*100+502)}</strong><br/>
+          {f.firstName} {f.lastName}{age?`, Age ${age}`:""}<br/>
+          Population: <strong>{meta?.label||"—"}</strong>
+          {f.veteran&&<><br/>🎖️ <strong>Veteran</strong></>}
+          {requiresGuardian&&f.guardianName&&<><br/>Guardian: <strong>{f.guardianName}</strong></>}
+        </p>
+        <Alert type="success">Intake record created and ready for FHIR matching with Epic and Alabama OHR.</Alert>
+        <div style={{height:18}}/>
+        <Btn v="sec" full onClick={()=>{setSaved(false);setStep(1);setF({firstName:"",lastName:"",dob:"",phone:"",email:"",address:"",city:"",state:"Alabama",zip:"",gender:"",language:"English",race:"",insuranceId:"",medicaidId:"",pcpNpi:"",refNpi:"",icd10:"",medications:"no",allergies:"none",mhHistory:"no",substanceUse:"no",school:"",grade:"",emergencyName:"",emergencyPhone:"",emergencyRel:"",consentDate:"",veteran:false,militaryConnected:false,branch:"",era:"",guardianName:"",guardianRel:"",guardianPhone:"",guardianEmail:"",guardianConsent:false,supportName:"",supportPhone:"",supportRel:"",referralSource:"",referralReason:"",urgency:"routine"});}}>New intake</Btn>
+      </Card>
+    </div>
+  );
+
+  return(
+    <div className="pg">
+      <EW>Client Intake Form — 21 EHR Matching Fields · All Populations</EW>
+      <h1 style={{fontSize:28,fontWeight:900,marginBottom:6}}>📋 New client intake</h1>
+      <p style={{fontSize:15,color:"var(--tx4)",marginBottom:18}}>Supports Early Youth through Veterans. Age auto-calculates from DOB. Population auto-assigns. Guardian fields appear for under-18 clients. School fields hidden for adults and veterans.</p>
+      {/* Step bar */}
+      <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:22,flexWrap:"wrap"}}>
+        {STEPS.map((s,i)=>(
+          <div key={s} style={{display:"flex",alignItems:"center",gap:4}}>
+            {i>0&&<div style={{width:16,height:2,background:step>i+1?"var(--teal)":"var(--bdr)"}}/>}
+            <div onClick={()=>step>i+1&&setStep(i+1)} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 11px",borderRadius:99,background:step===i+1?"var(--teal)":step>i+1?"var(--teal-ltt)":"var(--bg2)",border:`1.5px solid ${step===i+1?"var(--teal)":step>i+1?"var(--teal-mid)":"var(--bdr)"}`,cursor:step>i+1?"pointer":"default"}}>
+              <span style={{fontSize:12,fontWeight:800,color:step===i+1?"white":step>i+1?"var(--teal-h)":"var(--tx5)"}}>{step>i+1?"✓":i+1}</span>
+              <span style={{fontSize:12,fontWeight:700,color:step===i+1?"white":step>i+1?"var(--teal-h)":"var(--tx5)"}}>{s}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:22}}>
+        <div>
+          {step===1&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>👤 Step 1 — Identity</h2>
+            <Row><Field label="First name" req><input value={f.firstName} onChange={e=>upd("firstName",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Last name" req><input value={f.lastName} onChange={e=>upd("lastName",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            <Field label="Date of birth — auto-calculates age and population" req>
+              <input type="date" value={f.dob} onChange={e=>upd("dob",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/>
+              {age!==null&&<div style={{fontSize:12.5,color:"var(--teal)",fontWeight:700,marginTop:5}}>Age calculated: {age} years</div>}
+            </Field>
+            <CatBar/>
+            <Row><Field label="Gender identity"><select value={f.gender} onChange={e=>upd("gender",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Transgender male</option><option>Transgender female</option><option>Prefer not to say</option></select></Field>
+            <Field label="Primary language"><select value={f.language} onChange={e=>upd("language",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option>English</option><option>Spanish</option><option>Other</option></select></Field></Row>
+            <Field label="Race / Ethnicity"><select value={f.race} onChange={e=>upd("race",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>Black or African American</option><option>White</option><option>Hispanic or Latino</option><option>Asian</option><option>American Indian or Alaska Native</option><option>Two or more races</option><option>Prefer not to say</option></select></Field>
+            {age>=18&&<div style={{padding:"13px 15px",borderRadius:"var(--r-sm)",background:"#FFF5F5",border:"1.5px solid #FCA5A5",marginBottom:14}}>
+              <label style={{display:"flex",alignItems:"flex-start",gap:11,cursor:"pointer",marginBottom:8}}>
+                <input type="checkbox" checked={f.veteran} onChange={e=>upd("veteran",e.target.checked)} style={{accentColor:"#B91C1C",width:17,height:17,marginTop:2}}/>
+                <div><div style={{fontSize:14,fontWeight:800,color:"#7F1D1D"}}>🎖️ Veteran or active military</div><div style={{fontSize:12.5,color:"var(--tx4)"}}>Assigns Veteran population category. Routes to veteran-specialized providers and resources.</div></div>
+              </label>
+              <label style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+                <input type="checkbox" checked={f.militaryConnected} onChange={e=>upd("militaryConnected",e.target.checked)} style={{accentColor:"#92400E",width:15,height:15}}/>
+                <span style={{fontSize:13.5,color:"#78350F",fontWeight:600}}>Military-connected (family member of active/veteran)</span>
+              </label>
+              {f.veteran&&<Row><Field label="Branch"><select value={f.branch} onChange={e=>upd("branch",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>Army</option><option>Navy</option><option>Air Force</option><option>Marine Corps</option><option>Coast Guard</option><option>National Guard</option><option>Reserves</option></select></Field><Field label="Service era"><select value={f.era} onChange={e=>upd("era",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>Post-9/11 (2001–present)</option><option>Gulf War (1990–2001)</option><option>Vietnam Era</option><option>Other</option></select></Field></Row>}
+            </div>}
+            <Btn v="pri" full sz="lg" disabled={!f.firstName||!f.lastName||!f.dob} onClick={()=>setStep(2)}>Next →</Btn>
+          </Card>}
+          {step===2&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>📞 Step 2 — Contact</h2>
+            <CatBar/>
+            <Row><Field label="Phone" req><input value={f.phone} onChange={e=>upd("phone",e.target.value)} placeholder="(205) 555-0000" style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Email"><input type="email" value={f.email} onChange={e=>upd("email",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            <Field label="Home address" req><input value={f.address} onChange={e=>upd("address",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field>
+            <Row><Field label="City" req><input value={f.city} onChange={e=>upd("city",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="ZIP" req><input value={f.zip} onChange={e=>upd("zip",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            {showSchool&&<Row><Field label="School name"><input value={f.school} onChange={e=>upd("school",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Grade"><select value={f.grade} onChange={e=>upd("grade",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option>{["5th","6th","7th","8th","9th","10th","11th","12th"].map(g=><option key={g}>{g}</option>)}</select></Field></Row>}
+            <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(1)}>← Back</Btn><Btn v="pri" full disabled={!f.phone||!f.address||!f.city||!f.zip} onClick={()=>setStep(3)}>Next →</Btn></div>
+          </Card>}
+          {step===3&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>💳 Step 3 — Insurance (EHR 8–11)</h2>
+            <CatBar/>
+            <Row><Field label="Insurance / Payer ID" req><input value={f.insuranceId} onChange={e=>upd("insuranceId",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Medicaid / ALL Kids ID"><input value={f.medicaidId} onChange={e=>upd("medicaidId",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            <Row><Field label="PCP NPI"><input value={f.pcpNpi} onChange={e=>upd("pcpNpi",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Referring Provider NPI" req><input value={f.refNpi} onChange={e=>upd("refNpi",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            {f.veteran&&<Alert type="warning" style={{marginBottom:12}}>🎖️ Veteran — also verify TRICARE or VA Community Care before selecting payer.</Alert>}
+            <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(2)}>← Back</Btn><Btn v="pri" full onClick={()=>setStep(4)}>Next →</Btn></div>
+          </Card>}
+          {step===4&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>🧠 Step 4 — Clinical (EHR 12–18)</h2>
+            <CatBar/>
+            <Field label="Primary ICD-10 diagnosis" req><select value={f.icd10} onChange={e=>upd("icd10",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option value="F41.1">F41.1 — Generalized Anxiety Disorder</option><option value="F32.1">F32.1 — Major Depressive Disorder</option><option value="F43.10">F43.10 — PTSD, unspecified</option><option value="F43.12">F43.12 — PTSD, chronic (veteran)</option><option value="F40.10">F40.10 — Social anxiety</option><option value="F41.0">F41.0 — Panic disorder</option><option value="F90.0">F90.0 — ADHD</option><option value="F10.10">F10.10 — Alcohol use disorder</option><option value="Z71.1">Z71.1 — Mental health counseling</option></select></Field>
+            <Row><Field label="Current medications"><select value={f.medications} onChange={e=>upd("medications",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="no">None</option><option value="yes">Yes — list in notes</option></select></Field><Field label="Known allergies"><select value={f.allergies} onChange={e=>upd("allergies",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="none">None known</option><option value="yes">Yes — list in notes</option></select></Field></Row>
+            <Row><Field label="Prior MH history"><select value={f.mhHistory} onChange={e=>upd("mhHistory",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="no">None</option><option value="yes">Yes</option></select></Field><Field label="Substance use"><select value={f.substanceUse} onChange={e=>upd("substanceUse",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="no">None</option><option value="yes">Yes</option></select></Field></Row>
+            <Row><Field label="Emergency contact name" req><input value={f.emergencyName} onChange={e=>upd("emergencyName",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Emergency contact phone" req><input value={f.emergencyPhone} onChange={e=>upd("emergencyPhone",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            <Field label="Relationship"><input value={f.emergencyRel} onChange={e=>upd("emergencyRel",e.target.value)} placeholder={f.veteran?"e.g. Spouse, VA case manager, peer specialist":"e.g. Mother, Spouse, Friend"} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field>
+            <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(3)}>← Back</Btn><Btn v="pri" full disabled={!f.icd10||!f.emergencyName||!f.emergencyPhone} onClick={()=>setStep(5)}>Next →</Btn></div>
+          </Card>}
+          {step===5&&<Card>
+            {requiresGuardian?(
+              <><h2 style={{fontSize:16,fontWeight:800,marginBottom:6,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>👨‍👩‍👧 Step 5 — Guardian (required — under 18)</h2>
+              <Alert type="warning" style={{marginBottom:14}}>Client is <strong>{age} years old</strong>. Guardian information required before proceeding.</Alert>
+              <CatBar/>
+              <Row><Field label="Guardian full name" req><input value={f.guardianName} onChange={e=>upd("guardianName",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Relationship" req><select value={f.guardianRel} onChange={e=>upd("guardianRel",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>Mother</option><option>Father</option><option>Grandmother</option><option>Grandfather</option><option>Legal guardian</option><option>Foster parent</option><option>Other</option></select></Field></Row>
+              <Row><Field label="Guardian phone" req><input value={f.guardianPhone} onChange={e=>upd("guardianPhone",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Guardian email"><input type="email" value={f.guardianEmail} onChange={e=>upd("guardianEmail",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+              <label style={{display:"flex",alignItems:"flex-start",gap:11,padding:"12px 14px",borderRadius:"var(--r-sm)",background:"#EDFAF6",border:"1.5px solid var(--teal-mid)",cursor:"pointer",marginBottom:14}}>
+                <input type="checkbox" checked={f.guardianConsent} onChange={e=>upd("guardianConsent",e.target.checked)} style={{accentColor:"var(--teal)",width:17,height:17,marginTop:2}}/>
+                <div><div style={{fontSize:14,fontWeight:700}}>Guardian consent obtained</div><div style={{fontSize:12.5,color:"var(--tx4)"}}>Guardian has provided verbal or written consent for this intake and for referral to mental health services.</div></div>
+              </label>
+              <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(4)}>← Back</Btn><Btn v="pri" full disabled={!f.guardianName||!f.guardianRel||!f.guardianPhone||!f.guardianConsent} onClick={()=>setStep(6)}>Next →</Btn></div></>
+            ):(
+              <><h2 style={{fontSize:16,fontWeight:800,marginBottom:6,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>🤝 Step 5 — Support contact (optional)</h2>
+              <Alert type="mint" style={{marginBottom:14}}>Client is <strong>{age} years old</strong>. Support contact is optional for adults.</Alert>
+              <CatBar/>
+              <Row><Field label="Support contact name"><input value={f.supportName} onChange={e=>upd("supportName",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label="Relationship"><input value={f.supportRel} onChange={e=>upd("supportRel",e.target.value)} placeholder={f.veteran?"e.g. Spouse, VA case manager":"e.g. Spouse, Friend"} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+              <Field label="Support contact phone"><input value={f.supportPhone} onChange={e=>upd("supportPhone",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field>
+              {f.veteran&&<Alert type="warning" style={{marginBottom:12}}>🎖️ Consider listing VA case manager or peer support specialist as support contact.</Alert>}
+              <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(4)}>← Back</Btn><Btn v="pri" full onClick={()=>setStep(6)}>Next →</Btn></div></>
+            )}
+          </Card>}
+          {step===6&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>📋 Step 6 — Referral (EHR 19–21)</h2>
+            <CatBar/>
+            <Row><Field label="Referral source"><select value={f.referralSource} onChange={e=>upd("referralSource",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="">Select...</option><option>School counselor</option><option>Self-referral</option><option>Family / caregiver</option><option>Primary care provider</option><option>VA / military</option><option>Community organization</option><option>Crisis line</option></select></Field>
+            <Field label="Urgency"><select value={f.urgency} onChange={e=>upd("urgency",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}><option value="routine">Routine — 5 business days</option><option value="elevated">Elevated — 1–2 weeks</option><option value="urgent">Urgent — 48 hours</option></select></Field></Row>
+            <Field label="Reason for referral"><textarea value={f.referralReason} onChange={e=>upd("referralReason",e.target.value)} placeholder="Presenting concerns, recent events, reason for referral..." style={{...iSt,minHeight:72,resize:"vertical"}} onFocus={iFoc} onBlur={iBlr}/></Field>
+            <Row><Field label="Consent date" req><input type="date" value={f.consentDate} onChange={e=>upd("consentDate",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field><Field label={showSchool?"School":"Employer / program"}><input value={f.school} onChange={e=>upd("school",e.target.value)} style={iSt} onFocus={iFoc} onBlur={iBlr}/></Field></Row>
+            <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(5)}>← Back</Btn><Btn v="pri" full disabled={!f.consentDate} onClick={()=>setStep(7)}>Review →</Btn></div>
+          </Card>}
+          {step===7&&<Card>
+            <h2 style={{fontSize:16,fontWeight:800,marginBottom:14,paddingBottom:12,borderBottom:"1px solid var(--bdr-lt)"}}>✅ Step 7 — Review & submit</h2>
+            {pop&&<div style={{marginBottom:14}}><PopBadge pop={pop}/>{f.veteran&&<span style={{marginLeft:8}}><Badge v="red">🎖️ Veteran</Badge></span>}</div>}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:16}}>
+              {[["Name",`${f.firstName} ${f.lastName}`],["DOB / Age",`${f.dob} · Age ${age}`],["Population",meta?.label||"—"],["ICD-10",f.icd10||"—"],["Insurance",f.insuranceId||"—"],["Emergency",`${f.emergencyName} (${f.emergencyRel})`],requiresGuardian?["Guardian",`${f.guardianName} · ${f.guardianRel}`]:["Support",f.supportName||"None"],["Referral source",f.referralSource||"—"],["Urgency",f.urgency],["Consent date",f.consentDate]].map(([l,v])=>(
+                <div key={l} style={{padding:"8px 11px",borderRadius:"var(--r-sm)",background:"var(--bg2)",border:"1px solid var(--bdr)"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--tx5)",textTransform:"uppercase",letterSpacing:".06em",marginBottom:2}}>{l}</div>
+                  <div style={{fontSize:13.5,fontWeight:600,color:"var(--tx2)"}}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <Alert type="mint" style={{marginBottom:14}}>All 21 EHR fields collected. Ready for FHIR matching with Epic and Alabama OHR.</Alert>
+            <div style={{display:"flex",gap:10}}><Btn v="sec" onClick={()=>setStep(6)}>← Edit</Btn><Btn v="pri" full sz="lg" onClick={()=>setSaved(true)}>✓ Submit intake record</Btn></div>
+          </Card>}
+        </div>
+        {/* Right: live profile card */}
+        <Card sx={{position:"sticky",top:16,alignSelf:"flex-start",background:meta?meta.bg:"var(--card)",border:meta?`2px solid ${meta.border}`:"1.5px solid var(--bdr)"}}>
+          <h2 style={{fontSize:15,fontWeight:800,marginBottom:12,color:meta?meta.color:"var(--tx1)"}}>📊 Client profile preview</h2>
+          <div style={{textAlign:"center",padding:"14px 0",marginBottom:12}}>
+            <div style={{width:52,height:52,borderRadius:"50%",background:"var(--teal-ltt)",border:"2px solid var(--teal-mid)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,margin:"0 auto 9px"}}>{pop?POPULATION_META[pop].icon:"👤"}</div>
+            <div style={{fontSize:16,fontWeight:800}}>{f.firstName||"—"} {f.lastName||""}</div>
+            <div style={{fontSize:13,color:"var(--tx5)",marginBottom:7}}>{f.dob?`Age ${age}`:"Enter date of birth"}</div>
+            {pop&&<PopBadge pop={pop}/>}
+            {f.veteran&&<div style={{marginTop:6}}><Badge v="red">🎖️ Veteran</Badge></div>}
+          </div>
+          <HR my={10}/>
+          {[["Category",pop?meta.label:"Not yet calculated"],["Guardian required",requiresGuardian?"Yes — under 18":age===null?"Enter DOB":"No"],["School fields",showSchool?"Shown":"Hidden"],["ICD-10",f.icd10||"Not selected"],["Insurance",f.insuranceId||"Not entered"],["Consent date",f.consentDate||"Not entered"]].map(([l,v])=>(
+            <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid var(--bdr-lt)"}}>
+              <span style={{fontSize:12,color:"var(--tx5)"}}>{l}</span>
+              <span style={{fontSize:12.5,fontWeight:700,color:"var(--tx2)",textAlign:"right",maxWidth:"55%"}}>{v}</span>
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 // ══════════════════════════════════════════════════════════
 // HOME PAGE
 // ══════════════════════════════════════════════════════════
@@ -3679,7 +4220,7 @@ const Home=({nav,setRole})=>(
         <div style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(255,255,255,.16)",border:"1.5px solid rgba(255,255,255,.28)",borderRadius:99,padding:"5px 15px",fontSize:11,fontWeight:800,textTransform:"uppercase",letterSpacing:".08em",color:"white",marginBottom:18}}>
           <div style={{width:6,height:6,borderRadius:"50%",background:"#6EE7B7"}}/>EPSE Enterprises LLC · Alabama Youth Mental Health Initiative
         </div>
-        <h1 style={{fontFamily:"'Lora',serif",fontSize:42,fontWeight:700,color:"white",marginBottom:16,lineHeight:1.12}}>Connecting youth to <em style={{color:"#A7F3D0"}}>care</em><br/>faster than ever before.</h1>
+        <h1 style={{fontFamily:"'Lora',serif",fontSize:42,fontWeight:700,color:"white",marginBottom:16,lineHeight:1.12}}>Connecting people to <em style={{color:"#A7F3D0"}}>care</em><br/>faster than ever before.</h1>
         <p style={{fontSize:16,color:"rgba(255,255,255,.82)",maxWidth:500,marginBottom:30,lineHeight:1.7}}>A secure, HIPAA-informed, consent-aware coordination platform bridging schools, families, licensed providers, and community organizations.</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:32}}>
           <Btn v="sec" sz="lg" onClick={()=>{setRole("Youth");nav("youth");}}>🌱 Youth Check-In</Btn>
@@ -3696,7 +4237,7 @@ const Home=({nav,setRole})=>(
         <div style={{fontSize:40,flexShrink:0}}>🏢</div>
         <div>
           <div style={{fontSize:17,fontWeight:900,color:"var(--teal-h)",marginBottom:6}}>EPSE Enterprises LLC</div>
-          <p style={{fontSize:14.5,color:"var(--tx3)",lineHeight:1.7,marginBottom:10}}>Birmingham, Alabama-based social enterprise developing technology for youth behavioral health, education equity, and community safety. E-Connect Youth is EPSE's flagship platform — patent-pending (Application No. 63875629). Built to eliminate fragmentation in care delivery for underserved youth ages 10–21.</p>
+          <p style={{fontSize:14.5,color:"var(--tx3)",lineHeight:1.7,marginBottom:10}}>Birmingham, Alabama-based social enterprise developing technology for youth behavioral health, education equity, and community safety. E-Connect is EPSE's flagship platform — patent-pending (Application No. 63875629). Built to eliminate fragmentation in care delivery for underserved youth ages 10–21.</p>
           <div style={{display:"flex",gap:9,flexWrap:"wrap"}}>
             <Badge v="teal">📍 Birmingham, Alabama</Badge><Badge v="blue">Patent App. 63875629</Badge><Badge v="green">HIPAA-Informed</Badge><Badge v="purple">FERPA-Aware</Badge>
             <a href="https://www.epse2021.org" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 11px",borderRadius:99,fontSize:13,fontWeight:800,background:"#C9F5EC",color:"#0A5E52",textDecoration:"none"}}>🌐 epse2021.org</a>
@@ -3757,7 +4298,16 @@ function App(){
     // Auto-set role from user account
     const roleMap={Youth:"Youth",Parent:"Parent",School:"School",Provider:"Provider",Admin:"Admin"};
     if(roleMap[user.role]){setRole(user.role);}
-    setDisclaimerAccepted(true); // disclaimer shown on sign-in page
+    setDisclaimerAccepted(true);
+    // Calculate population from DOB if available
+    if(user.dob){
+      const age=calcAge(user.dob);
+      if(age!==null){
+        const pop=getPopulation(age, user.veteran||false);
+        user.population=pop;
+        user.calculatedAge=age;
+      }
+    }
   };
 
   const handleSignOut=()=>{
@@ -3771,7 +4321,7 @@ function App(){
 
   const routes={
     home:<Home nav={nav} setRole={setRoleNav}/>,
-    youth:<YouthDash nav={nav}/>,
+    youth:<YouthDash nav={nav} currentUser={currentUser}/>,
     journal:<JournalPage/>,
     mood:<MoodHistoryPage/>,
     parent:<ParentDash nav={nav}/>,
@@ -3799,6 +4349,7 @@ function App(){
     caregiver_tips:<CaregiverTipsPage/>,
     quick_referral:<QuickReferralPage/>,
     calendar:<AvailabilityCalendarPage/>,
+    intake:<ClientIntakePage/>,
   };
 
   return(
@@ -3817,7 +4368,7 @@ function App(){
       {signedIn&&<div className="app-shell" style={{display:"flex",height:"100vh",overflow:"hidden",background:"var(--bg)"}}>
         <Sidebar page={page} nav={nav} role={role} dark={dark} setDark={setDark} collapsed={collapsed} setCollapsed={setCollapsed} onSearch={()=>setShowSearch(true)} currentUser={currentUser} onSignOut={handleSignOut}/>
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
-          <RoleBar role={role} setRole={setRoleNav} nav={nav} onNotif={()=>setShowNotifs(s=>!s)} lang={lang} setLang={setLang} simpleMode={simpleMode} setSimpleMode={setSimpleMode}/>
+          <RoleBar role={role} setRole={setRoleNav} nav={nav} onNotif={()=>setShowNotifs(s=>!s)} lang={lang} setLang={setLang} simpleMode={simpleMode} setSimpleMode={setSimpleMode} signedIn={signedIn} currentUser={currentUser}/>
           {/* Breadcrumb */}
           <Breadcrumb page={page} nav={nav}/>
           {/* Language + Accessibility bar */}
