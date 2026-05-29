@@ -138,7 +138,8 @@ const TRAUMA_QUESTIONS=[
 // POPULATION CLASSIFICATION ENGINE
 // ══════════════════════════════════════════════════════════
 const getPopulation=(age,veteran=false)=>{
-  if(veteran&&age>=18) return "VETERAN";
+  // Veteran status assigns ADULT profile — veteran flag is preserved separately
+  // All other age categories remain unchanged
   if(age>=10&&age<=14) return "EARLY_YOUTH";
   if(age>=15&&age<=17) return "MIDDLE_YOUTH";
   if(age>=18&&age<=24) return "OLDER_YOUTH";
@@ -146,12 +147,23 @@ const getPopulation=(age,veteran=false)=>{
   return "ADULT";
 };
 
+// Veteran status is tracked as a flag on top of the population category.
+// A veteran is always classified as ADULT for profile/workflow purposes,
+// but retains a veteran indicator for routing to veteran-specific resources,
+// providers, crisis lines, and care coordination workflows.
+const getEffectivePop=(age,veteran=false)=>{
+  const basePop=getPopulation(age,false);
+  // Veteran overrides OLDER_YOUTH and ADULT to ADULT — never changes youth categories
+  if(veteran&&age>=18) return "ADULT";
+  return basePop;
+};
+
 const POPULATION_META={
   EARLY_YOUTH:  {label:"Early Youth",  icon:"🌱",color:"#1D4ED8",bg:"#DBEAFE",border:"#93C5FD",teamLabel:"Your support team",   guardianRule:"required"},
   MIDDLE_YOUTH: {label:"Middle Youth", icon:"🌿",color:"#5B21B6",bg:"#EDE9FE",border:"#C4B5FD",teamLabel:"Your support team",   guardianRule:"required"},
   OLDER_YOUTH:  {label:"Older Youth",  icon:"🌳",color:"#047857",bg:"#D1FAE5",border:"#6EE7B7",teamLabel:"Your care connections",guardianRule:"optional"},
   ADULT:        {label:"Adult",        icon:"👤",color:"#92400E",bg:"#FEF3C7",border:"#FCD34D",teamLabel:"Your care network",    guardianRule:"none"},
-  VETERAN:      {label:"Veteran",      icon:"🎖️",color:"#7F1D1D",bg:"#FEE2E2",border:"#FCA5A5",teamLabel:"Your care network",    guardianRule:"none"},
+  VETERAN:      {label:"Veteran",      icon:"🎖️",color:"#7F1D1D",bg:"#FEE2E2",border:"#FCA5A5",teamLabel:"Your care network",    guardianRule:"none"}, // display/resources only — routing uses ADULT
 };
 
 const calcAge=(dob)=>{
@@ -162,9 +174,14 @@ const calcAge=(dob)=>{
   return age;
 };
 
-const PopBadge=({pop,xs})=>{
+const PopBadge=({pop,veteran=false,xs})=>{
   const m=POPULATION_META[pop]||POPULATION_META.ADULT;
-  return <span style={{display:"inline-flex",alignItems:"center",gap:4,borderRadius:99,fontWeight:800,whiteSpace:"nowrap",fontSize:xs?11:13,padding:xs?"3px 9px":"5px 13px",background:m.bg,color:m.color,border:`1px solid ${m.border}`}}>{m.icon} {m.label}</span>;
+  return(
+    <span style={{display:"inline-flex",alignItems:"center",gap:5,flexWrap:"nowrap"}}>
+      <span style={{display:"inline-flex",alignItems:"center",gap:4,borderRadius:99,fontWeight:800,whiteSpace:"nowrap",fontSize:xs?11:13,padding:xs?"3px 9px":"5px 13px",background:m.bg,color:m.color,border:`1px solid ${m.border}`}}>{m.icon} {m.label}</span>
+      {veteran&&<span style={{display:"inline-flex",alignItems:"center",gap:3,borderRadius:99,fontWeight:800,fontSize:xs?10:12,padding:xs?"2px 7px":"3px 10px",background:"#FEE2E2",color:"#7F1D1D",border:"1px solid #FCA5A5",whiteSpace:"nowrap"}}>🎖️ Veteran</span>}
+    </span>
+  );
 };
 
 const showSchoolFields=(pop)=>["EARLY_YOUTH","MIDDLE_YOUTH","OLDER_YOUTH"].includes(pop);
@@ -178,8 +195,8 @@ const REFERRALS=[
   {id:"EC-2025-0488",name:"K.R.",      age:17,dob:"2008-11-05",population:"MIDDLE_YOUTH",veteran:false,school:"Peer referral",        concern:"Stress, college transitions", risk:"routine", status:"active",   days:31,provider:"S. Chen",                  consent:true, cssrs:0,trauma:0,guardian:"Mr. K. Rhodes"},
   {id:"EC-2025-0479",name:"D.B.",      age:14,dob:"2011-01-30",population:"EARLY_YOUTH", veteran:false,school:"Birmingham City Schools",concern:"Grief, trauma, family loss",risk:"elevated",status:"active",   days:46,provider:"Fictional Provider — JCBH",consent:true, cssrs:2,trauma:4,guardian:"Ms. D. Brown"},
   {id:"EC-2025-0471",name:"Marcus W.", age:22,dob:"2003-06-18",population:"OLDER_YOUTH", veteran:false,school:"UAB — self-referral",  concern:"Depression, isolation",       risk:"elevated",status:"active",   days:12,provider:"Dr. Williams",              consent:true, cssrs:1,trauma:2,guardian:null},
-  {id:"EC-2025-0463",name:"R.V.",      age:29,dob:"1996-02-14",population:"VETERAN",      veteran:true, school:null,                  concern:"PTSD, reintegration stress",  risk:"elevated",status:"triaged",  days:5, provider:"—",                          consent:true, cssrs:2,trauma:5,guardian:null},
-  {id:"EC-2025-0455",name:"T.H.",      age:45,dob:"1980-09-03",population:"VETERAN",      veteran:true, school:null,                  concern:"Combat trauma, substance use", risk:"urgent",  status:"pending",  days:1, provider:"—",                          consent:false,cssrs:3,trauma:5,guardian:null},
+  {id:"EC-2025-0463",name:"R.V.",      age:29,dob:"1996-02-14",population:"ADULT",        veteran:true, school:null,                  concern:"PTSD, reintegration stress",  risk:"elevated",status:"triaged",  days:5, provider:"—",                          consent:true, cssrs:2,trauma:5,guardian:null},
+  {id:"EC-2025-0455",name:"T.H.",      age:45,dob:"1980-09-03",population:"ADULT",        veteran:true, school:null,                  concern:"Combat trauma, substance use", risk:"urgent",  status:"pending",  days:1, provider:"—",                          consent:false,cssrs:3,trauma:5,guardian:null},
 ];
 
 const PROVIDERS=[
@@ -714,7 +731,7 @@ const NotificationsPanel=({onClose,nav})=>{
 const DEMO_USERS = [
   {id:"u1", name:"Jordan Thompson",    email:"jordan.t@student.jcs.edu",        role:"Youth",    population:"MIDDLE_YOUTH", org:"Parker High School",       avatar:"JT", color:"#0C7A6A", bg:"#EDFAF6", provider:"microsoft", dob:"2010-04-15", veteran:false},
   {id:"u2", name:"Marcus Williams",    email:"m.williams22@gmail.com",           role:"Youth",    population:"OLDER_YOUTH",  org:"UAB — self-referral",      avatar:"MW", color:"#047857", bg:"#ECFDF5", provider:"google",    dob:"2003-06-18", veteran:false},
-  {id:"u3", name:"Robert V.",          email:"r.vasquez@veteranmail.com",        role:"Youth",    population:"VETERAN",      org:"Alabama VA Network",       avatar:"RV", color:"#7F1D1D", bg:"#FEE2E2", provider:"microsoft", dob:"1996-02-14", veteran:true, branch:"Army", era:"Post-9/11"},
+  {id:"u3", name:"Robert V.",          email:"r.vasquez@gmail.com",              role:"Youth",    population:"ADULT",        org:"Self-referral",            avatar:"RV", color:"#92400E", bg:"#FEF3C7", provider:"microsoft", dob:"1998-05-29", veteran:true,  branch:"Army", era:"Post-9/11"},
   {id:"u4", name:"Ms. Sarah Thompson", email:"s.thompson@gmail.com",             role:"Parent",   population:null,           org:"Parent / Guardian",        avatar:"ST", color:"#1D4ED8", bg:"#EFF6FF", provider:"google",    dob:null,         veteran:false},
   {id:"u5", name:"Tamara Johnson",     email:"tjohnson@jeffersonhigh.k12.al.us", role:"School",   population:null,           org:"Jefferson High School",    avatar:"TJ", color:"#92400E", bg:"#FFFBEB", provider:"microsoft", dob:null,         veteran:false},
   {id:"u6", name:"Fictional Provider — Dr. Marcus Williams",email:"mwilliams@jcbh.org",role:"Provider",population:null,   org:"Jefferson County BH",      avatar:"FP", color:"#047857", bg:"#ECFDF5", provider:"microsoft", dob:null,         veteran:false},
@@ -1125,7 +1142,7 @@ const RoleBar=({role,setRole,nav,onNotif,lang,setLang,simpleMode,setSimpleMode,s
 // ══════════════════════════════════════════════════════════
 const YouthDash=({nav,currentUser})=>{
   // Derive population from currentUser or default to MIDDLE_YOUTH for Jordan T. demo
-  const pop=currentUser?.population||"MIDDLE_YOUTH";
+  const pop=(currentUser?.veteran&&currentUser?.calculatedAge>=18)?"ADULT":(currentUser?.population||"MIDDLE_YOUTH");
   const meta=POPULATION_META[pop]||POPULATION_META.MIDDLE_YOUTH;
   const teamLabel=meta.teamLabel;
   const[mood,setMood]=useState(4);const[stress,setStress]=useState(3);
@@ -2983,7 +3000,7 @@ const ProviderDash=({nav})=>{
               <tr key={r.id} onMouseEnter={e=>e.currentTarget.style.background="var(--bg2)"} onMouseLeave={e=>e.currentTarget.style.background="var(--card)"}>
                 <td style={{padding:"12px 13px",fontWeight:800,fontSize:14}}>{r.name}</td>
                 <td style={{padding:"12px 13px",fontSize:14}}>{r.age}</td>
-                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} xs/></td>
+                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} veteran={!!r.veteran} xs/></td>
                 <td style={{padding:"12px 13px"}}><RiskBadge level={r.risk}/></td>
                 <td style={{padding:"12px 13px",fontSize:13,color:"var(--tx4)",maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
                 <td style={{padding:"12px 13px"}}><Badge v={r.cssrs>=3?"red":r.cssrs>=1?"amber":"green"} xs>{r.cssrs}/6</Badge></td>
@@ -3044,7 +3061,7 @@ const CoordDash=({nav})=>{
               <div style={{flex:1}}>
                 <div style={{display:"flex",flexWrap:"wrap",gap:7,marginBottom:6,alignItems:"center"}}>
                   <strong style={{fontSize:14}}>{r.name}, {r.age}</strong>
-                  <PopBadge pop={r.population} xs/>
+                  <PopBadge pop={r.population} veteran={r.veteran} xs/>
                   <RiskBadge level={r.risk}/>
                   {r.veteran&&<Badge v="red" xs>🎖️ Veteran</Badge>}
                   {r.cssrs>=3&&<Badge v="red" xs>⚠ CSSRS {r.cssrs}</Badge>}
@@ -3121,7 +3138,7 @@ const TrackerPage=()=>{
               <tr key={r.id} onMouseEnter={e=>e.currentTarget.style.background="var(--bg2)"} onMouseLeave={e=>e.currentTarget.style.background="var(--card)"}>
                 <td style={{padding:"11px 13px",fontWeight:800,color:"var(--teal)",fontSize:12}}>{r.id}</td>
                 <td style={{padding:"11px 13px",fontWeight:800,fontSize:14}}>{r.name}, {r.age}</td>
-                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} xs/></td>
+                <td style={{padding:"8px 13px"}}><PopBadge pop={r.population} veteran={!!r.veteran} xs/></td>
                 <td style={{padding:"11px 13px",fontSize:13,color:"var(--tx4)",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.concern}</td>
                 <td style={{padding:"11px 13px"}}><RiskBadge level={r.risk}/></td>
                 <td style={{padding:"11px 13px"}}><StatusBadge status={r.status}/></td>
@@ -4041,7 +4058,7 @@ const ClientIntakePage=()=>{
   });
   const upd=(k,v)=>setF(p=>({...p,[k]:v}));
   const age=calcAge(f.dob);
-  const pop=age!==null?getPopulation(age,f.veteran):null;
+  const pop=age!==null?getEffectivePop(age,f.veteran):null;
   const meta=pop?POPULATION_META[pop]:null;
   const requiresGuardian=pop?needsGuardian(pop):false;
   const showSchool=pop?showSchoolFields(pop):true;
@@ -4344,7 +4361,7 @@ function App(){
     if(user.dob){
       const age=calcAge(user.dob);
       if(age!==null){
-        const pop=getPopulation(age, user.veteran||false);
+        const pop=getEffectivePop(age, user.veteran||false);
         user.population=pop;
         user.calculatedAge=age;
       }
