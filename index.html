@@ -34,6 +34,9 @@
       --gold:#F5B841;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .mobile-nav-trigger{display:none}
+    .mobile-drawer .sidebar-desktop{display:flex!important;height:100%!important;width:100%!important}
+    @media(max-width:768px){.mobile-nav-trigger{display:block!important}.main-area{padding:16px!important}}
     html{font-size:16px;-webkit-font-smoothing:antialiased}
     body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--tx2);line-height:1.65;overflow:hidden}
     body.dark{--bg:#0F172A;--bg2:#1E293B;--card:#1E293B;--sb:#13152E;--sb-bdr:#2D3561;--sb-hover:#1E2347;--sb-active:#1A2060;--bdr:#2D3561;--bdr-lt:#243059;--tx1:#F1F5F9;--tx2:#E2E8F0;--tx3:#CBD5E1;--tx4:#94A3B8;--tx5:#64748B}
@@ -608,6 +611,7 @@ const GlobalSearch=({nav,onClose})=>{
 const PAGE_META={
   home:{label:"Home",parent:null},
   youth:{label:"Dashboard",parent:"home"},
+  explore:{label:"Explore & Create",parent:"home"},
   journal:{label:"Wellness Journal",parent:"youth"},
   mood:{label:"Mood History",parent:"youth"},
   veteran:{label:"Veteran Hub",parent:"home"},
@@ -1027,6 +1031,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
         {id:"appointments",e:"📅",label:"Support Team"},
       ]},
       {label:"Wellness Tools", items:[
+        {id:"explore",e:"🎨",label:"Explore & Create"},
         {id:"safety",  e:"🛡️", label:"Safety Plan"},
         {id:"progress",e:"🎯", label:"Goal Tracker"},
         {id:"telehealth",e:"📹",label:"Telehealth"},
@@ -1034,6 +1039,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
     ],
     Family: [
       {label:"Main", items:[
+        {id:"explore",e:"🎨",label:"Explore & Create"},
         {id:"home",       e:"🏠", label:"Home"},
         {id:"family",     e:"🏡", label:"Family Dashboard"},
         {id:"journal",    e:"📓", label:"Wellness Journal"},
@@ -1045,6 +1051,7 @@ const Sidebar=({page,nav,role,dark,setDark,collapsed,setCollapsed,onSearch,curre
     ],
     Veteran: [
       {label:"Main", items:[
+        {id:"explore",e:"🎨",label:"Explore & Create"},
         {id:"home",        e:"🏠", label:"Home"},
         {id:"veteran",     e:"🎖️", label:"Veteran Dashboard"},
         {id:"journal",     e:"📓", label:"Wellness Journal"},
@@ -5068,6 +5075,7 @@ const Home=({nav,setRole})=>(
 // ══════════════════════════════════════════════════════════
 function App(){
   const[page,setPage]=useState("home");
+  const[mobileMenuOpen,setMobileMenuOpen]=useState(false);
   const[role,setRole]=useState("Admin");
   const[dark,setDark]=useState(false);
   const[showOnboarding,setShowOnboarding]=useState(true);
@@ -5094,7 +5102,25 @@ function App(){
     return()=>window.removeEventListener("keydown",handler);
   },[]);
 
-  const nav=p=>{setPage(p);if(mainRef.current)mainRef.current.scrollTop=0;};
+  // Browser history and role-aware navigation. Unknown destinations show a useful message.
+  const nav=p=>{
+    setPage(p);
+    setMobileMenuOpen(false);
+    const next="#/"+encodeURIComponent(p);
+    if(window.location.hash!==next)window.history.pushState({page:p},"",next);
+    if(mainRef.current)mainRef.current.scrollTop=0;
+  };
+  React.useEffect(()=>{
+    const restore=()=>{
+      const requested=decodeURIComponent(window.location.hash.replace(/^#\/?/,""))||"home";
+      setPage(requested);
+      setMobileMenuOpen(false);
+    };
+    window.addEventListener("popstate",restore);
+    window.addEventListener("hashchange",restore);
+    if(window.location.hash)restore();
+    return()=>{window.removeEventListener("popstate",restore);window.removeEventListener("hashchange",restore);};
+  },[]);
 
   const handleSignIn=(user)=>{
     // Normalize role first
@@ -5133,6 +5159,7 @@ function App(){
   const routes={
     home:<Home nav={nav} setRole={setRoleNav}/>,
     youth:<YouthDash nav={nav} currentUser={currentUser}/>,
+    explore:<ExploreCreate/>,
     journal:<JournalPage currentUser={currentUser}/>,
     mood:<JournalPage currentUser={currentUser}/>,
     family:<ParentDash nav={nav}/>,
@@ -5177,9 +5204,19 @@ function App(){
       )}
       {showSearch&&<GlobalSearch nav={(p)=>{nav(p);}} onClose={()=>setShowSearch(false)}/>}
       {showNotifs&&<NotificationsPanel nav={(p)=>{nav(p);setShowNotifs(false);}} onClose={()=>setShowNotifs(false)}/>}
+      {signedIn&&mobileMenuOpen&&<div className="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile navigation" style={{position:"fixed",inset:0,zIndex:2000,display:"flex"}}>
+        <button aria-label="Close navigation" onClick={()=>setMobileMenuOpen(false)} style={{position:"absolute",inset:0,background:"rgba(0,0,0,.5)",border:0}}/>
+        <div style={{position:"relative",width:"min(86vw,320px)",height:"100%",overflow:"auto"}}>
+          <Sidebar page={page} nav={nav} role={role} dark={dark} setDark={setDark} collapsed={false} setCollapsed={setCollapsed} onSearch={()=>{setMobileMenuOpen(false);setShowSearch(true)}} currentUser={currentUser} onSignOut={()=>{setMobileMenuOpen(false);handleSignOut()}}/>
+        </div>
+      </div>}
       {signedIn&&<div className="app-shell" style={{display:"flex",height:"100vh",overflow:"hidden",background:"var(--bg)"}}>
         <Sidebar page={page} nav={nav} role={role} dark={dark} setDark={setDark} collapsed={collapsed} setCollapsed={setCollapsed} onSearch={()=>setShowSearch(true)} currentUser={currentUser} onSignOut={handleSignOut}/>
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
+          <div className="mobile-nav-trigger" style={{padding:"8px 16px",background:"var(--card)",borderBottom:"1px solid var(--bdr)"}}>
+            <button onClick={()=>setMobileMenuOpen(true)} aria-label="Open navigation" aria-expanded={mobileMenuOpen} style={{minHeight:44,minWidth:44,padding:"8px 12px",borderRadius:8,border:"1px solid var(--bdr)",background:"var(--card)",color:"var(--tx1)",fontSize:16}}>☰ Menu</button>
+            <button onClick={()=>window.history.back()} style={{minHeight:44,marginLeft:8,padding:"8px 12px",borderRadius:8,border:"1px solid var(--bdr)",background:"var(--card)",color:"var(--tx1)"}}>← Back</button>
+          </div>
           <RoleBar role={role} setRole={setRoleNav} nav={nav} onNotif={()=>setShowNotifs(s=>!s)} lang={lang} setLang={setLang} simpleMode={simpleMode} setSimpleMode={setSimpleMode} signedIn={signedIn} currentUser={currentUser}/>
           {/* Role Banner */}
           <RoleBanner role={role} page={page}/>
@@ -5231,16 +5268,41 @@ function App(){
               // Synchronously determine what to render
               const renderPage = accessOk ? page : (HOME_BY_ROLE[role]||"home");
               // If mismatch, also update state so URL/breadcrumb stay in sync
-              if(!accessOk && renderPage !== page){
-                requestAnimationFrame(()=>setPage(renderPage));
-              }
-              return routes[renderPage]||routes.home;
+              if(!accessOk) return <section role="alert" style={{padding:24}}><h2>Page not available for this account</h2><p>This area is not part of your current role.</p><button onClick={()=>nav(renderPage)}>Return to dashboard</button></section>;
+              if(!Object.prototype.hasOwnProperty.call(routes,renderPage)) return <section role="alert" style={{padding:24}}><h2>Page not found</h2><p>This destination is not available.</p><button onClick={()=>nav("home")}>Go home</button></section>;
+              return routes[renderPage];
             })()}
           </main>
         </div>
       </div>}
     </>
   );
+}
+
+// EPSE-Thrive Explore & Create: self-directed activities. No health data collected.
+const activities = [
+ {id:"ground",category:"Coping & Calm",title:"5–4–3–2–1 Grounding",minutes:5,steps:["Name five things you can see.","Notice four things you can feel.","Listen for three sounds.","Notice two scents.","Notice one taste or take a slow comfortable breath."]},
+ {id:"breath",category:"Breathing",title:"Gentle Breathing",minutes:2,steps:["Breathe comfortably; don't force or hold your breath.","Follow the expanding and contracting circle.","Stop or return to normal breathing whenever you want."]},
+ {id:"art",category:"Art & Creativity",title:"Draw Your Happy Place",minutes:15,steps:["Choose pencils, paint, or a digital canvas.","Draw a place—real or imagined—where you feel comfortable.","Add three details that make it yours."]},
+ {id:"move",category:"Move & Exercise",title:"Five-Minute Movement Break",minutes:5,steps:["March or walk gently for one minute.","Roll shoulders slowly for thirty seconds.","Stretch arms comfortably.","Walk or move at your own pace for two minutes.","Cool down gently; stop if uncomfortable."]},
+ {id:"cook",category:"Cook & Nourish",title:"Colorful Yogurt Bowl",minutes:5,steps:["Check ingredients for allergies.","Spoon plain yogurt into a bowl.","Add washed berries or sliced fruit.","Top with oats or seeds if suitable.","Enjoy; substitute dairy-free yogurt if preferred."]},
+ {id:"craft",category:"Knit & Crochet",title:"First Crochet Chain",minutes:10,steps:["Gather yarn and a suitable crochet hook.","Make a slip knot and place it on the hook.","Wrap yarn over the hook and pull through the loop.","Repeat slowly to create a chain.","Try making ten chain stitches."]},
+];
+function ExploreCreate(){
+ const [category,setCategory]=useState("All");
+ const [selected,setSelected]=useState(null);
+ const [favorites,setFavorites]=useState([]);
+ const [step,setStep]=useState(0);
+ const [phase,setPhase]=useState("In");
+ const [running,setRunning]=useState(false);
+ const categories=["All",...new Set(activities.map(x=>x.category)),"Create Music"];
+ const visible=activities.filter(x=>category==="All"||x.category===category);
+ React.useEffect(()=>{if(!running)return;const id=setInterval(()=>setPhase(p=>p==="In"?"Out":"In"),4000);return()=>clearInterval(id)},[running]);
+ return <main style={{fontFamily:"system-ui",padding:20,maxWidth:920,margin:"auto",color:"#172554"}}>
+ <a href="#activities">Skip to activities</a><h1>Explore & Create</h1><p>Choose something you enjoy. No personal health information required.</p>
+ <nav aria-label="Activity categories" style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>{categories.map(c=><button key={c} aria-pressed={category===c} onClick={()=>{setCategory(c);setSelected(null);setRunning(false)}} style={{padding:"10px 14px",borderRadius:22,border:"1px solid #008f86",background:category===c?"#007f78":"white",color:category===c?"white":"#163e5a",cursor:"pointer"}}>{c}</button>)}</nav>
+ {category==="Create Music"?<section><h2>Create Music</h2><p>Explore original AI-generated music across genres. Music creation is coming after provider, licensing and safety review.</p></section>:<div id="activities" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16}}>{visible.map(a=><article key={a.id} style={{border:"1px solid #cbd5e1",borderRadius:14,padding:18,background:"#fff"}}><small>{a.category} · {a.minutes} min</small><h2 style={{fontSize:20}}>{a.title}</h2><button onClick={()=>{setSelected(a.id);setStep(0);setRunning(false)}}>Try now</button>{" "}<button aria-pressed={favorites.includes(a.id)} onClick={()=>setFavorites(p=>p.includes(a.id)?p.filter(x=>x!==a.id):[...p,a.id])}>{favorites.includes(a.id)?"Saved ✓":"Save"}</button>{selected===a.id&&<section aria-label={a.title+" instructions"}><ol>{a.steps.map((s,i)=><li key={i} style={{fontWeight:i===step?"bold":"normal",margin:"8px 0"}}>{s}</li>)}</ol><button disabled={step===0} onClick={()=>setStep(s=>s-1)}>Previous</button>{" "}<button disabled={step===a.steps.length-1} onClick={()=>setStep(s=>s+1)}>Next</button>{a.id==="breath"&&<div style={{marginTop:16}}><div aria-live="polite" style={{width:120,height:120,borderRadius:"50%",background:"#99f6e4",display:"grid",placeItems:"center",margin:"16px auto",transform:running&&phase==="In"?"scale(1.2)":"scale(1)",transition:"transform 4s ease"}}>{running?(phase==="In"?"Breathe in":"Breathe out"):"At your pace"}</div><button onClick={()=>setRunning(x=>!x)}>{running?"Stop breathing guide":"Start breathing guide"}</button></div>}</section>}</article>)}</div>}
+ <p style={{marginTop:28,fontSize:13}}>Activities are for general well-being and learning, not medical treatment. Stop any activity that causes discomfort.</p></main>;
 }
 
 const root=ReactDOM.createRoot(document.getElementById("root"));
