@@ -1,1 +1,43 @@
-
+:root {
+      /* EPSE-Thrive brand colors */
+      --teal:#00B8A9;--teal-h:#009E96;--teal-p:#007F78;
+      --teal-lt:#C5F0ED;--teal-ltt:#E8FAF9;--teal-mid:#7BE0D6;
+      --blue:#2F3E9E;--blue-lt:#D4D9F5;--blue-ltt:#ECEEFF;
+      --indigo:#2F3E9E;--indigo-h:#263380;--indigo-lt:#D4D9F5;
+      --green:#047857;--green-lt:#D1FAE5;--green-ltt:#ECFDF5;
+      --amber:#F5B841;--amber-lt:#FEF3C7;--amber-ltt:#FFFBEB;
+      --amber-tx:#92400E;
+      --red:#B91C1C;--red-lt:#FEE2E2;--red-ltt:#FFF5F5;
+      --purple:#5B21B6;--purple-lt:#EDE9FE;--purple-ltt:#F5F3FF;
+      --pink:#9D174D;--pink-lt:#FCE7F3;
+      --tx1:#111827;--tx2:#1F2937;--tx3:#374151;--tx4:#4B5563;--tx5:#6B7280;
+      --bg:#F7F8FC;--bg2:#ECEEFF;--card:#FFFFFF;
+      --sb:#F0F1FA;--sb-bdr:#D4D9F5;--sb-hover:#E4E6F8;--sb-active:#D4D9F5;
+      --bdr:#D4D9F5;--bdr-lt:#E4E6F8;
+      --r-xs:6px;--r-sm:10px;--r:14px;--r-lg:20px;--r-xl:28px;
+      --sh-xs:0 1px 3px rgba(0,0,0,.06);--sh:0 3px 12px rgba(0,0,0,.08);--sh-lg:0 6px 20px rgba(0,0,0,.09);
+      --sb-w:248px;
+      --gold:#F5B841;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    .mobile-nav-trigger{display:none}
+    .mobile-drawer .sidebar-desktop{display:flex!important;height:100%!important;width:100%!important}
+    @media(max-width:768px){.mobile-nav-trigger{display:block!important}.main-area{padding:16px!important}}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--tx2);line-height:1.65;overflow:hidden}
+    body.dark{--bg:#0F172A;--bg2:#1E293B;--card:#1E293B;--sb:#13152E;--sb-bdr:#2D3561;--sb-hover:#1E2347;--sb-active:#1A2060;--bdr:#2D3561;--bdr-lt:#243059;--tx1:#F1F5F9;--tx2:#E2E8F0;--tx3:#CBD5E1;--tx4:#94A3B8;--tx5:#64748B}
+    *:focus-visible{outline:3px solid var(--teal);outline-offset:3px;border-radius:var(--r-xs)}
+    *:focus:not(:focus-visible){outline:none}
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-thumb{background:#B0C8D0;border-radius:99px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .pg{animation:fadeUp .28s ease both}
+    input,select,textarea,button{font-family:inherit}
+    @media(max-width:768px){
+      body{overflow:auto}
+      .app-shell{flex-direction:column!important}
+      .sidebar-desktop{display:none!important}
+      .main-area{height:auto!important;overflow:visible!important}
+    }

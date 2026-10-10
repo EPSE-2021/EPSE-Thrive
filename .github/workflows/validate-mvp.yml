@@ -1,0 +1,26 @@
+name: Validate MVP navigation
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/explore-create-mvp]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
+      - name: Validate navigation, roles, and build entrypoint
+        run: node scripts/validate-navigation.mjs
+      - name: Validate demo and authentication separation
+        run: node scripts/validate-auth-safety.mjs
+      - name: Build deployable Vite artifact
+        run: npm run build
+      - name: Check output
+        run: test -f dist/index.html
