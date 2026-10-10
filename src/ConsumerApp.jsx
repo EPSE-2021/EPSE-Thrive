@@ -95,7 +95,7 @@ export default function ConsumerApp() {
     catch {setBusy(false);setError("Sign-out could not complete. Please try again.");}
   };
   if (!enabled || demo) return <><DemoApp/>{demo&&<button onClick={()=>setDemo(false)} style={{position:"fixed",bottom:12,right:12,zIndex:9999}}>Return to account sign-in</button>}</>;
-  return <main style={{minHeight:"100vh",background:"linear-gradient(135deg,#2F3E9E,#00B8A9)",display:"grid",placeItems:"center",padding:24}}>
+  return <main style={{height:"100vh",overflowY:"auto",background:"linear-gradient(135deg,#2F3E9E,#00B8A9)",display:"grid",placeItems:"center",padding:24}}>
     <section style={{background:"white",padding:32,borderRadius:18,maxWidth:480,width:"100%"}}>
       <h1>EPSE-Thrive</h1>
       {account ? <>
