@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const html=readFileSync('index.html','utf8');
+const html=readFileSync('src/ThriveApp.jsx','utf8');
 assert.doesNotMatch(html,/simulateMicrosoftAuth|simulateGoogleAuth|handleMicrosoftLogin|handleGoogleLogin/);
 assert.doesNotMatch(html,/email\.includes|type=["']password["']/);
 assert.match(html,/accountMode!=="demo"/);
@@ -9,3 +9,4 @@ assert.match(html,/onSignIn\(\{\.\.\.user, accountMode:"demo"\}\)/);
 assert.match(html,/Real accounts and registration are not yet available/);
 assert.match(html,/explore:<ExploreCreate\/>/);
 console.log('PASS: provider impersonation removed; fictional accounts isolated; Explore & Create preserved');
+
