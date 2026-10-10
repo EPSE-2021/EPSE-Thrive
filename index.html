@@ -768,61 +768,10 @@ const SignInPage = ({onSignIn}) => {
   const[step, setStep] = useState("choose");        // choose | microsoft | google | demo
   const[loading, setLoading] = useState(false);
   const[loadingText, setLoadingText] = useState("");
-  const[selectedProvider, setSelectedProvider] = useState(null);
-  const[email, setEmail] = useState("");
-  const[password, setPassword] = useState("");
-  const[error, setError] = useState("");
-  const[demoUser, setDemoUser] = useState(null);
-
-  const simulateMicrosoftAuth = () => {
-    setStep("microsoft");
-    setError("");
-  };
-
-  const simulateGoogleAuth = () => {
-    setStep("google");
-    setError("");
-  };
-
-  const handleMicrosoftLogin = () => {
-    if(!email.includes("@")) { setError("Please enter a valid email address."); return; }
-    setLoading(true);
-    setLoadingText("Connecting to Microsoft Entra ID...");
-    setTimeout(()=>{
-      setLoadingText("Verifying your identity...");
-      setTimeout(()=>{
-        setLoadingText("Loading your EPSE-Thrive permissions...");
-        setTimeout(()=>{
-          setLoading(false);
-          // Match demo user by email or assign role by domain
-          const match = DEMO_USERS.find(u=>u.email.toLowerCase()===email.toLowerCase()&&u.provider==="microsoft");
-          if(match){ onSignIn(match); }
-          else {
-            // Auto-assign role by email domain
-            let role = "Parent";
-            if(email.includes(".k12.al.us")||email.includes("school")) role="School";
-            else if(email.includes("jcbh")||email.includes("clinic")||email.includes("therapist")) role="Provider";
-            else if(email.includes("econnect")||email.includes("coordinator")) role="Admin";
-            else if(email.includes("student")) role="Youth";
-            onSignIn({id:"demo",name:email.split("@")[0],email,role,org:"Demo Account",avatar:email[0].toUpperCase(),color:"#0C7A6A",bg:"#EDFAF6",provider:"microsoft"});
-          }
-        }, 1000);
-      }, 1200);
-    }, 1000);
-  };
-
-  const handleGoogleLogin = () => {
-    if(!email.includes("@")) { setError("Please enter a valid email address."); return; }
-    setLoading(true);
-    setLoadingText("Connecting to Google...");
-    setTimeout(()=>{
-      setLoadingText("Verifying your Google account...");
-      setTimeout(()=>{
-        setLoading(false);
-        const match = DEMO_USERS.find(u=>u.email.toLowerCase()===email.toLowerCase()&&u.provider==="google");
-        onSignIn(match||{id:"demo",name:email.split("@")[0],email,role:"Family",org:"Demo Account",avatar:email[0].toUpperCase(),color:"#1D4ED8",bg:"#EFF6FF",provider:"google"});
-      }, 1500);
-    }, 1000);
+  // Real identity is disabled until the existing Entra registration is reviewed.
+  // Never collect provider credentials or infer authorization from email text.
+  const identityUnavailable = () => {
+    setError("Real account sign-in is not yet available. Use the fictional demo to explore.");
   };
 
   const handleDemoLogin = (user) => {
@@ -830,7 +779,7 @@ const SignInPage = ({onSignIn}) => {
     setLoadingText(`Signing in as ${user.name}...`);
     setTimeout(()=>{
       setLoading(false);
-      onSignIn(user);
+      onSignIn({...user, accountMode:"demo"});
     }, 1200);
   };
 
@@ -850,7 +799,7 @@ const SignInPage = ({onSignIn}) => {
           <div style={{background:"white",borderRadius:"var(--r-lg)",padding:"48px 40px",textAlign:"center",boxShadow:"0 24px 64px rgba(0,0,0,.3)"}}>
             <div style={{width:52,height:52,borderRadius:"50%",border:"4px solid var(--teal-lt)",borderTop:"4px solid var(--teal)",margin:"0 auto 20px",animation:"spin 1s linear infinite"}}/>
             <div style={{fontSize:16,fontWeight:700,color:"var(--tx2)",marginBottom:4}}>{loadingText}</div>
-            <div style={{fontSize:13,color:"var(--tx5)"}}>This is a secure, encrypted connection.</div>
+            <div style={{fontSize:13,color:"var(--tx5)"}}>Opening fictional demonstration data.</div>
           </div>
         )}
 
@@ -858,10 +807,11 @@ const SignInPage = ({onSignIn}) => {
         {!loading&&step==="choose"&&(
           <div style={{background:"white",borderRadius:"var(--r-lg)",padding:"44px 40px",boxShadow:"0 24px 64px rgba(0,0,0,.28)"}}>
             <h1 style={{fontSize:23,fontWeight:900,color:"#111827",marginBottom:6,textAlign:"center"}}>Sign in to EPSE-Thrive</h1>
-            <p style={{fontSize:14,color:"#6B7280",textAlign:"center",marginBottom:32,lineHeight:1.6}}>Secure resilience and support coordination platform.<br/>Your role is automatically assigned based on your account.</p>
+            <p style={{fontSize:14,color:"#6B7280",textAlign:"center",marginBottom:32,lineHeight:1.6}}>Secure resilience and support coordination platform.<br/>Fictional demo only. Real accounts and registration are not yet available.</p>
 
+            {error&&<p role="alert" style={{color:"#B91C1C",marginBottom:16}}>{error}</p>}
             {/* Microsoft button */}
-            <button onClick={simulateMicrosoftAuth}
+            <button onClick={identityUnavailable}
               style={{width:"100%",display:"flex",alignItems:"center",gap:14,padding:"15px 20px",borderRadius:"var(--r-sm)",border:"2px solid #E5E7EB",background:"white",cursor:"pointer",marginBottom:12,fontFamily:"inherit",transition:"all .15s",minHeight:58}}
               onMouseEnter={e=>{e.currentTarget.style.borderColor="#2F3E9E";e.currentTarget.style.background="#ECEEFF";}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor="#E5E7EB";e.currentTarget.style.background="white";}}>
@@ -875,11 +825,11 @@ const SignInPage = ({onSignIn}) => {
                 <div style={{fontSize:15,fontWeight:700,color:"#111827"}}>Continue with Microsoft</div>
                 <div style={{fontSize:12,color:"#6B7280"}}>Microsoft Entra ID · Azure · Microsoft 365</div>
               </div>
-              <span style={{fontSize:12,background:"#ECEEFF",color:"#2F3E9E",padding:"3px 9px",borderRadius:99,fontWeight:700}}>Recommended</span>
+              <span style={{fontSize:12,background:"#ECEEFF",color:"#2F3E9E",padding:"3px 9px",borderRadius:99,fontWeight:700}}>Coming soon</span>
             </button>
 
             {/* Google button */}
-            <button onClick={simulateGoogleAuth}
+            <button onClick={identityUnavailable}
               style={{width:"100%",display:"flex",alignItems:"center",gap:14,padding:"15px 20px",borderRadius:"var(--r-sm)",border:"2px solid #E5E7EB",background:"white",cursor:"pointer",marginBottom:32,fontFamily:"inherit",transition:"all .15s",minHeight:58}}
               onMouseEnter={e=>{e.currentTarget.style.borderColor="#DB4437";e.currentTarget.style.background="#FFF5F5";}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor="#E5E7EB";e.currentTarget.style.background="white";}}>
@@ -935,39 +885,6 @@ const SignInPage = ({onSignIn}) => {
             <p style={{fontSize:11.5,color:"#9CA3AF",textAlign:"center"}}>
               Prototype — all accounts fictional · Patent App. 63875629
             </p>
-          </div>
-        )}
-
-        {/* Step: Microsoft login form */}
-        {!loading&&step==="microsoft"&&(
-          <div style={{background:"white",borderRadius:"var(--r-lg)",padding:"40px",boxShadow:"0 24px 64px rgba(0,0,0,.3)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
-              <svg width="28" height="28" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
-              <div><div style={{fontSize:17,fontWeight:800}}>Microsoft sign-in</div><div style={{fontSize:12,color:"#6B7280"}}>Microsoft Entra ID · EPSE Enterprises</div></div>
-            </div>
-            <label style={{display:"block",fontSize:13.5,fontWeight:700,color:"#374151",marginBottom:6}}>Email, phone, or Skype</label>
-            <input value={email} onChange={e=>{setEmail(e.target.value);setError("");}} placeholder="user@organization.com" onFocus={iFoc} onBlur={iBlr} style={{...iSt,marginBottom:error?8:16}} onKeyDown={e=>e.key==="Enter"&&handleMicrosoftLogin()}/>
-            {error&&<div style={{fontSize:13,color:"#B91C1C",marginBottom:12}}>{error}</div>}
-            <div style={{fontSize:12.5,color:"#6B7280",marginBottom:16,lineHeight:1.6}}>
-              Accepted domains: <strong>@jcs.edu · @jcbh.org · @econnectyouth.org · @*.k12.al.us · @gmail.com · @outlook.com</strong> and most Microsoft 365 accounts.
-            </div>
-            <button onClick={handleMicrosoftLogin} style={{width:"100%",padding:"13px",background:"#0078D4",border:"none",borderRadius:"var(--r-sm)",color:"white",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",marginBottom:12}}>Next</button>
-            <button onClick={()=>setStep("choose")} style={{width:"100%",padding:"10px",background:"none",border:"1.5px solid #E5E7EB",borderRadius:"var(--r-sm)",color:"#374151",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>← Back to sign-in options</button>
-          </div>
-        )}
-
-        {/* Step: Google login form */}
-        {!loading&&step==="google"&&(
-          <div style={{background:"white",borderRadius:"var(--r-lg)",padding:"40px",boxShadow:"0 24px 64px rgba(0,0,0,.3)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
-              <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-              <div><div style={{fontSize:17,fontWeight:800}}>Sign in with Google</div><div style={{fontSize:12,color:"#6B7280"}}>Use your Google or Gmail account</div></div>
-            </div>
-            <label style={{display:"block",fontSize:13.5,fontWeight:700,color:"#374151",marginBottom:6}}>Email or phone</label>
-            <input value={email} onChange={e=>{setEmail(e.target.value);setError("");}} placeholder="you@gmail.com" onFocus={iFoc} onBlur={iBlr} style={{...iSt,marginBottom:error?8:16}} onKeyDown={e=>e.key==="Enter"&&handleGoogleLogin()}/>
-            {error&&<div style={{fontSize:13,color:"#B91C1C",marginBottom:12}}>{error}</div>}
-            <button onClick={handleGoogleLogin} style={{width:"100%",padding:"13px",background:"#DB4437",border:"none",borderRadius:"var(--r-sm)",color:"white",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",marginBottom:12}}>Next</button>
-            <button onClick={()=>setStep("choose")} style={{width:"100%",padding:"10px",background:"none",border:"1.5px solid #E5E7EB",borderRadius:"var(--r-sm)",color:"#374151",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>← Back to sign-in options</button>
           </div>
         )}
 
@@ -5123,6 +5040,7 @@ function App(){
   },[]);
 
   const handleSignIn=(user)=>{
+    if(user.accountMode!=="demo" || !DEMO_USERS.some(u=>u.id===user.id)) return;
     // Normalize role first
     const roleMap={Youth:"Youth",Parent:"Family",Family:"Family",Veteran:"Veteran",School:"School",Provider:"Provider",Admin:"Admin"};
     const mappedRole=roleMap[user.role]||"Youth";
@@ -5154,7 +5072,7 @@ function App(){
     setPage("home");
   };
   const roleDefaults={Youth:"youth",Family:"family",Parent:"family",Veteran:"veteran",School:"school",Provider:"provider",Admin:"coordinator"};
-  const setRoleNav=r=>{setRole(r);setShowOnboarding(false);nav(roleDefaults[r]||"home");};
+  const setRoleNav=r=>{if(currentUser?.accountMode!=="demo")return;setRole(r);setShowOnboarding(false);nav(roleDefaults[r]||"home");};
 
   const routes={
     home:<Home nav={nav} setRole={setRoleNav}/>,

@@ -18,6 +18,8 @@ jobs:
         run: npm install
       - name: Validate navigation, roles, and build entrypoint
         run: node scripts/validate-navigation.mjs
+      - name: Validate demo and authentication separation
+        run: node scripts/validate-auth-safety.mjs
       - name: Build deployable Vite artifact
         run: npm run build
       - name: Check output
