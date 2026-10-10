@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {PublicClientApplication, InteractionRequiredAuthError} from "@azure/msal-browser";
+import StaffOnboarding from "./StaffOnboarding.jsx";
 import DemoApp from "./ThriveApp.jsx";
 
 const enabled = import.meta.env.VITE_CONSUMER_AUTH_ENABLED === "true";
@@ -58,25 +59,32 @@ export default function ConsumerApp() {
       await identity.loginRedirect({scopes:[apiScope], prompt:"select_account"});
     } catch {setError("Sign-in could not start. Please try again.");setBusy(false);}
   };
+  const request=useCallback(async(path, options={})=>{
+    const {identity,ready}=getIdentity();await ready;
+    let result;
+    try {result=await identity.acquireTokenSilent({account,scopes:[apiScope]});}
+    catch(err) {
+      if(err instanceof InteractionRequiredAuthError) {
+        await identity.acquireTokenRedirect({account,scopes:[apiScope]});
+        throw new Error("Complete sign-in to continue.");
+      }
+      throw err;
+    }
+    const response=await fetch(new URL(path,apiBase.endsWith("/")?apiBase:apiBase+"/"),{
+      method:options.method||"GET",headers:{Authorization:`Bearer ${result.accessToken}`,
+        ...(options.body?{"Content-Type":"application/json"}:{})},
+      ...(options.body?{body:JSON.stringify(options.body)}:{}),cache:"no-store",credentials:"omit"});
+    if(!response.ok) {
+      let detail;try {detail=(await response.json()).detail;} catch {}
+      throw new Error(typeof detail==="string"?detail:"The account service could not complete the request.");
+    }
+    return response.json();
+  },[account]);
   const verify=async()=>{
     setBusy(true);setError("");setVerified(false);
     try {
-      const {identity,ready}=getIdentity();
-      await ready;
-      let result;
-      try {result=await identity.acquireTokenSilent({account,scopes:[apiScope]});}
-      catch(err) {
-        if(err instanceof InteractionRequiredAuthError) {
-          await identity.acquireTokenRedirect({account,scopes:[apiScope]});return;
-        }
-        throw err;
-      }
-      const response=await fetch(new URL("me",apiBase.endsWith("/")?apiBase:apiBase+"/"),{
-        headers:{Authorization:`Bearer ${result.accessToken}`},cache:"no-store",
-        credentials:"omit"});
-      if(!response.ok) throw new Error("Account service unavailable");
-      const profile=await response.json();
-      if(profile.account_mode!=="consumer" || !profile.subject) throw new Error("Invalid account response");
+      const profile=await request("me");
+      if(profile.account_mode!=="consumer"||!profile.subject) throw new Error("Invalid account response");
       setVerified(true);
     } catch {setError("Your account service could not be verified. Please try again.");}
     finally {setBusy(false);}
@@ -96,6 +104,7 @@ export default function ConsumerApp() {
         <button disabled={busy} onClick={verify}>Verify account connection</button>
         <button disabled={busy} onClick={signOut}>Sign out</button>
         <p>Wellness records, care-team access and messaging are still being prepared.</p>
+        {verified&&<StaffOnboarding request={request}/>}
       </> : <>
         <h2>Create an account or sign in</h2>
         <p>Continue to our secure sign-in page to register using an email verification code. Available social sign-in options appear there.</p>
