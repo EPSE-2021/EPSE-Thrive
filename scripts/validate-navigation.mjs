@@ -8,7 +8,7 @@ const pkg=JSON.parse(readFileSync("package.json","utf8"));
 const workflow=readFileSync(".github/workflows/deploy.yml","utf8");
 const checks=[
  ["Vite builds root index.html",()=>{assert.match(pkg.scripts.build,/vite build/);assert.match(shell,/<div id="root"><\/div>/);assert.match(shell,/type="module" src="\/src\/main.jsx"/);assert.doesNotMatch(shell,/text\/babel|unpkg.com/);}],
- ["Single module root render",()=>{assert.match(entry,/from "\.\/ThriveApp.jsx"/);assert.equal((entry.match(/createRoot/g)||[]).length,1);assert.doesNotMatch(html,/ReactDOM|root\.render/);}],
+ ["Single module root render",()=>{assert.match(entry,/from "\.\/ConsumerApp.jsx"/);assert.equal((entry.match(/createRoot/g)||[]).length,1);assert.doesNotMatch(html,/ReactDOM|root\.render/);}],
  ["Explore route and consumer role menus",()=>{assert.match(html,/explore:<ExploreCreate\/>/);for(const role of ["Youth","Family","Veteran"]){const block=html.match(new RegExp(role+": \\[([\\s\\S]*?)(?=\\n    (?:Youth|Family|Veteran|School|Provider|Admin):|\\n  };)"));assert.ok(block,role+" menu missing");assert.match(block[0],/id:"explore"/,role+" explore link missing");}}],
  ["Activity navigation does not overwrite hash",()=>{assert.doesNotMatch(html,/href="#activities"/);assert.match(html,/id="activities" tabIndex=\{-1\}/);}],
  ["Browser history listeners and role guard",()=>{assert.match(html,/pushState/);assert.match(html,/popstate/);assert.match(html,/hashchange/);assert.match(html,/Page not available for this account/);assert.match(html,/Page not found/);}],
